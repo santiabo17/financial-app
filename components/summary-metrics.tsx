@@ -1,10 +1,12 @@
 'use client'
 
 import { useMemo } from 'react'
-import { Card, CardContent } from '@/components/ui/card'
-import { Transaction, ViewMode } from '@/app/page'
+import { Card, CardContent } from '@/components/ui-old/card'
+import { ViewMode } from '@/app/page'
 import { TrendingUp, TrendingDown, DollarSign, Percent, ArrowUpRight, ArrowDownRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { Transaction, TYPE_ENUM } from '@/types/transaction'
+import { useTheme } from 'next-themes'
 
 interface SummaryMetricsProps {
   transactions: Transaction[]
@@ -30,12 +32,12 @@ export function SummaryMetrics({ transactions, viewMode }: SummaryMetricsProps) 
     })
 
     const totalIncome = filteredTransactions
-      .filter((t) => t.type === 'income')
-      .reduce((sum, t) => sum + t.amount, 0)
+      .filter((t) => t.type === !!TYPE_ENUM.INCOME)
+      .reduce((sum, t) => sum + Number(t.amount), 0)
 
     const totalOutcomes = filteredTransactions
-      .filter((t) => t.type === 'outcome')
-      .reduce((sum, t) => sum + t.amount, 0)
+      .filter((t) => t.type === !!TYPE_ENUM.OUTCOME)
+      .reduce((sum, t) => sum + Number(t.amount), 0)
 
     const netBalance = totalIncome - totalOutcomes
     const savingsRate = totalIncome > 0 ? (netBalance / totalIncome) * 100 : 0

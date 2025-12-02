@@ -1,12 +1,13 @@
 import { NextResponse } from 'next/server';
 import pool from '@/lib/db';
-import { CATEGORY_ENUM } from '@/types/category';
+import { TYPE_ENUM, TYPE_TEXT_ENUM } from '@/types/transaction';
+// import { CATEGORY_ENUM } from '@/types/category';
 
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const typeSearch = searchParams.get('type');
-    const type = typeSearch == "income" ? CATEGORY_ENUM.INCOME : typeSearch == "outcome" ? CATEGORY_ENUM.OUTCOME : false;
+    const type = typeSearch == TYPE_TEXT_ENUM.INCOME ? "false" : typeSearch == TYPE_TEXT_ENUM.OUTCOME ? "true" : false;
 
     const query = type != false ? 
       'SELECT id, name, type, color FROM categories WHERE type = $1' : 

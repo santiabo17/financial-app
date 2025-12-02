@@ -1,6 +1,7 @@
 // app/api/products/route.ts (Example API Route)
 import { NextResponse } from 'next/server';
 import pool from '@/lib/db';
+import { CreateTransactionForm } from '@/types/transaction';
 
 export async function GET(request: Request) {
   try {
@@ -31,17 +32,49 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  const { type, amount, category_id, description, date } = await request.json();
+  const { type, amount, category_id, description, date } = await request.json() as CreateTransactionForm;
+  console.log("type", type, "category_id", category_id);
   const client = await pool.connect(); // Get a dedicated client from the pool
 
   try {
     await client.query('BEGIN');
 
-    const insertQuery = 'INSERT INTO transactions (type, amount, category_id, description, date) VALUES ($1, $2, $3, $4, $5);';
+    const insertQuery = 'INSERT INTO transactions (type, amount, category_id, description, date) VALUES ($1, $2, $3, $4, $5) RETURNING *;;';
     const insertResult = await client.query(insertQuery, [type, amount, category_id, description, date]);
 
+    const createdTransaction = insertResult.rows[0];
+
     await client.query('COMMIT');
-    return NextResponse.json({ success: true, message: "Transaction registered successfully" });
+    return NextResponse.json({ success: true, message: "Transaction registered successfully", data: createdTransaction });
+
+  } catch (error) {
+    await client.query('ROLLBACK');
+    console.error("Transaction failed:", error, request);
+    return NextResponse.json({ message: "Transaction failed" }, { status: 500 });
+
+  } finally {
+    client.release();
+  }
+}
+
+export async function DELETE(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const transactionId = searchParams.get('id');
+  const client = await pool.connect();
+
+  try {
+    await client.query('BEGIN');
+
+    const deleteQuery = 'DELETE FROM transactions WHERE id = $1';
+    const deleteResult = await client.query(deleteQuery, [transactionId]);
+
+    if (deleteResult.rowCount === 0) {
+      await client.query('ROLLBACK');
+      return NextResponse.json({ success: false, message: "Transaction Not Found" }, { status: 404 });
+    }
+
+    await client.query('COMMIT');
+    return NextResponse.json({ success: true, message: "Transaction deleted successfully" });
 
   } catch (error) {
     await client.query('ROLLBACK');

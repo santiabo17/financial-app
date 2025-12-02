@@ -1,71 +1,79 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import { Button } from '@/components/ui-old/button'
+import { Input } from '@/components/ui-old/input'
+import { Label } from '@/components/ui-old/label'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { Transaction, TransactionType } from '@/app/page'
+} from '@/components/ui-old/select'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui-old/card'
 import { Plus, DollarSign } from 'lucide-react'
 import { Category } from '@/types/category'
 import { getCategories } from '@/services/category'
-
-const INCOME_CATEGORIES = ['Salary', 'Freelance', 'Investment', 'Other']
-const EXPENSE_CATEGORIES = [
-  'Rent/Mortgage',
-  'Groceries',
-  'Transportation',
-  'Utilities',
-  'Entertainment',
-  'Debt',
-  'Other',
-]
+import { CreateTransactionForm, TransactionType, TYPE_ENUM, TYPE_TEXT_ENUM } from '@/types/transaction'
+import { useTheme } from 'next-themes'
+import { useToast } from '@/hooks/use-toast'
 
 interface TransactionFormProps {
-  onSubmit: (transaction: Omit<Transaction, 'id'>) => void
+  onSubmit: (transaction: CreateTransactionForm) => void
 }
 
 export function TransactionForm({ onSubmit }: TransactionFormProps) {
-  const [type, setType] = useState<TransactionType>('outcome')
+  const { theme } = useTheme();
+  const { toast } = useToast()
+
+  const [type, setType] = useState<Boolean>(!!TYPE_ENUM.INCOME)
   const [amount, setAmount] = useState('')
   const [categories, setCategories] = useState<Category[]>([]);
-  const [category, setCategory] = useState<number>();
+  const [categoryId, setCategoryId] = useState<number>();
   const [description, setDescription] = useState('')
   const [date, setDate] = useState(new Date().toISOString().split('T')[0])
 
   useEffect(() => {
     const fetchCategories = async () => {
-      const categoriesData = await getCategories();
-      setCategories(categoriesData);
+      try {
+        const categoriesData = await getCategories(type ? TYPE_TEXT_ENUM.OUTCOME : TYPE_TEXT_ENUM.INCOME );
+        console.log("categoriesData: ", categoriesData);
+        setCategories(categoriesData);
+      } catch (error) {
+        console.log("error: ", error);
+        toast({
+          title: "Error",
+          description: `Problem fetching categories.`,
+          variant: "default",
+        })
+        setCategories([]);
+      }
     }
     fetchCategories();
   }, [type]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!amount || !category) return
+    if (!amount || !categoryId) return
 
     onSubmit({
-      type,
+      type: type == !!TYPE_ENUM.INCOME ? false : true,
       amount: parseFloat(amount),
-      category,
+      category_id: categoryId,
       description,
       date,
     })
 
     // Reset form
     setAmount('')
-    setCategory(undefined)
+    setCategoryId(undefined)
     setDescription('')
     setDate(new Date().toISOString().split('T')[0])
   }
+
+  const defaultStyle = theme == "light" ? "bg-white text-black" : "bg-black text-white";
+  const selectedStyle = `outline-2 outline-offset-1 outline-double ${theme == "light" ? "bg-black text-white outline-black" : "bg-white text-black outline-white"}`;
 
   return (
     <Card className="shadow-lg border-border/50">
@@ -86,31 +94,23 @@ export function TransactionForm({ onSubmit }: TransactionFormProps) {
             <div className="grid grid-cols-2 gap-2">
               <Button
                 type="button"
-                variant={type === 'income' ? 'default' : 'outline'}
                 onClick={() => {
-                  setType('income')
-                  setCategory(undefined)
+                  setType(!!TYPE_ENUM.INCOME)
+                  setCategoryId(undefined)
                 }}
-                className={
-                  type === 'income'
-                    ? 'bg-success hover:bg-success/90 text-success-foreground shadow-sm'
-                    : ''
-                }
+                className={`cursor-pointer gap-2 border 
+                  ${type === !!TYPE_ENUM.INCOME ? selectedStyle : defaultStyle}`}
               >
                 Income
               </Button>
               <Button
                 type="button"
-                variant={type === 'outcome' ? 'default' : 'outline'}
                 onClick={() => {
-                  setType('outcome')
-                  setCategory(undefined)
+                  setType(!!TYPE_ENUM.OUTCOME)
+                  setCategoryId(undefined)
                 }}
-                className={
-                  type === 'outcome'
-                    ? 'bg-destructive hover:bg-destructive/90 text-destructive-foreground shadow-sm'
-                    : ''
-                }
+                className={`cursor-pointer gap-2 border 
+                  ${type === !!TYPE_ENUM.OUTCOME ? selectedStyle : defaultStyle}`}
               >
                 Outcome
               </Button>
@@ -138,14 +138,14 @@ export function TransactionForm({ onSubmit }: TransactionFormProps) {
             </div>
           </div>
 
-          {/* Category */}
+          {/* CategoryId */}
           <div className="space-y-2">
             <Label htmlFor="category" className="text-sm font-medium">Category *</Label>
-            <Select value={category?.toString()} onValueChange={(value) => setCategory(Number(value))} required>
-              <SelectTrigger id="category" className="h-11">
+            <Select value={categoryId?.toString()} onValueChange={(value) => setCategoryId(Number(value))} required>
+              <SelectTrigger id="category" className="h-11 w-full">
                 <SelectValue placeholder="Select category" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className={theme == "dark" ? "bg-black text-white" : "bg-white text-black"}>
                 {categories.map((cat) => (
                   <SelectItem key={cat.id} value={cat.id.toString()}>
                     {cat.name}
@@ -181,7 +181,7 @@ export function TransactionForm({ onSubmit }: TransactionFormProps) {
           </div>
 
           {/* Submit Button */}
-          <Button type="submit" className="w-full gap-2 h-11 shadow-sm">
+          <Button type="submit" className={`w-full gap-2 h-11 shadow-sm cursor-pointer ${theme == "light" ? "bg-black text-white" : "bg-white text-black"}`}>
             <Plus className="w-4 h-4" />
             Log Transaction
           </Button>

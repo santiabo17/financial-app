@@ -1,17 +1,20 @@
 'use client'
 
-import { useMemo } from 'react'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { Transaction, ViewMode } from '@/app/page'
-import { Button } from '@/components/ui/button'
+import { useEffect, useMemo, useState } from 'react'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui-old/card'
+import { ViewMode } from '@/app/page'
+import { Button } from '@/components/ui-old/button'
 import { Trash2, PieChartIcon, BarChart3, Receipt, TrendingUp } from 'lucide-react'
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid, LineChart, Line } from 'recharts'
 import { cn } from '@/lib/utils'
+import { Category } from '@/types/category'
+import { Transaction, TYPE_ENUM } from '@/types/transaction'
+import { getCategories } from '@/services/category'
 
 interface VisualizationPanelProps {
   transactions: Transaction[]
   viewMode: ViewMode
-  onDeleteTransaction: (id: string) => void
+  onDeleteTransaction: (id: number) => void
 }
 
 const Outcome_COLORS = [
@@ -32,6 +35,15 @@ export function VisualizationPanel({
   viewMode,
   onDeleteTransaction,
 }: VisualizationPanelProps) {
+  const [allCategories, setAllCategories] = useState<Category[]>([]);
+  useEffect(() => {
+    const fetchCategories = async () => {
+      const categoriesData = await getCategories();
+      setAllCategories(categoriesData);
+    }
+    fetchCategories();
+  }, []);
+
   const { outcomesByCategory, monthlyData, filteredTransactions, categoryEvolutionData } = useMemo(() => {
     const now = new Date()
     const currentMonth = now.getMonth()
@@ -52,9 +64,10 @@ export function VisualizationPanel({
     // Outcomes by category for pie chart
     const outcomeMap = new Map<string, number>()
     filtered
-      .filter((t) => t.type === 'outcome')
+      .filter((t) => t.type === !!TYPE_ENUM.OUTCOME)
       .forEach((t) => {
-        outcomeMap.set(t.category.toString(), (outcomeMap.get(t.category.toString()) || 0) + t.amount)
+        const category = allCategories.find(cat => cat.id == t.category_id)?.name || "";
+        outcomeMap.set(category, (outcomeMap.get(category) || 0) + Number(t.amount))
       })
 
     const outcomesByCategory = Array.from(outcomeMap.entries())
@@ -71,11 +84,11 @@ export function VisualizationPanel({
           return d.getFullYear() === currentYear && d.getMonth() === i
         })
         const income = monthTransactions
-          .filter((t) => t.type === 'income')
-          .reduce((sum, t) => sum + t.amount, 0)
+          .filter((t) => t.type === !!TYPE_ENUM.INCOME)
+          .reduce((sum, t) => sum + Number(t.amount), 0)
         const outcomes = monthTransactions
-          .filter((t) => t.type === 'outcome')
-          .reduce((sum, t) => sum + t.amount, 0)
+          .filter((t) => t.type === !!TYPE_ENUM.OUTCOME)
+          .reduce((sum, t) => sum + Number(t.amount), 0)
         monthlyData.push({ month: months[i], income, outcomes })
       }
     }
@@ -90,19 +103,21 @@ export function VisualizationPanel({
         const dataPoint: any = { period: day.toString() }
         
         // Get all categories
-        const categories = new Set(filtered.filter(t => t.type === 'outcome').map(t => t.category))
+        const categories = new Set(filtered.filter(t => t.type === !!TYPE_ENUM.OUTCOME).map(t => allCategories.find(category => category.id == t.category_id)).filter(category => !!category));
         
         // For each category, sum up outcomes up to this day (cumulative)
         categories.forEach(category => {
           const categoryTotal = filtered
             .filter(t => 
-              t.type === 'outcome' && 
-              t.category === category && 
+              t.type === !!TYPE_ENUM.OUTCOME && 
+              t.category_id === category?.id && 
               new Date(t.date).getDate() <= day
             )
-            .reduce((sum, t) => sum + t.amount, 0)
-          dataPoint[category] = categoryTotal
+            .reduce((sum, t) => sum + Number(t.amount), 0)
+          dataPoint[category?.id] = categoryTotal
         })
+
+        console.log("categories: ", categories, filtered, dataPoint);
         
         categoryEvolutionData.push(dataPoint)
       }
@@ -116,8 +131,9 @@ export function VisualizationPanel({
         // Get all categories from the year
         const categories = new Set(
           transactions
-            .filter(t => t.type === 'outcome' && new Date(t.date).getFullYear() === currentYear)
-            .map(t => t.category)
+            .filter(t => t.type === !!TYPE_ENUM.OUTCOME && new Date(t.date).getFullYear() === currentYear)
+            .map(t => allCategories.find(category => category.id == t.category_id))
+            .filter(category => !!category)
         )
         
         // For each category, sum up outcomes up to this month (cumulative)
@@ -126,14 +142,14 @@ export function VisualizationPanel({
             .filter(t => {
               const d = new Date(t.date)
               return (
-                t.type === 'outcome' && 
-                t.category === category && 
+                t.type === !!TYPE_ENUM.OUTCOME && 
+                t.category_id === category.id && 
                 d.getFullYear() === currentYear &&
                 d.getMonth() <= month
               )
             })
-            .reduce((sum, t) => sum + t.amount, 0)
-          dataPoint[category] = categoryTotal
+            .reduce((sum, t) => sum + Number(t.amount), 0)
+          dataPoint[category.id] = categoryTotal
         })
         
         categoryEvolutionData.push(dataPoint)
@@ -141,14 +157,15 @@ export function VisualizationPanel({
     }
 
     return { outcomesByCategory, monthlyData, filteredTransactions: filtered, categoryEvolutionData }
-  }, [transactions, viewMode])
+  }, [allCategories, transactions, viewMode])
 
   const categories = useMemo(() => {
     return Array.from(
       new Set(
         filteredTransactions
-          .filter(t => t.type === 'outcome')
-          .map(t => t.category)
+          .filter(t => t.type === !!TYPE_ENUM.OUTCOME)
+          .map(t => allCategories.find(category => category.id == t.category_id))
+          .filter(category => !!category)
       )
     )
   }, [filteredTransactions])
@@ -288,13 +305,13 @@ export function VisualizationPanel({
                 <Legend />
                 {categories.map((category, index) => (
                   <Line
-                    key={category}
+                    key={category.id}
                     type="monotone"
-                    dataKey={category}
+                    dataKey={category.id}
                     stroke={Outcome_COLORS[index % Outcome_COLORS.length]}
                     strokeWidth={2}
                     dot={false}
-                    name={category.toString()}
+                    name={category.name}
                   />
                 ))}
               </LineChart>
@@ -328,19 +345,19 @@ export function VisualizationPanel({
                     <div
                       className={cn(
                         'w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0',
-                        transaction.type === 'income' ? 'bg-success/10' : 'bg-destructive/10'
+                        transaction.type === !!TYPE_ENUM.INCOME ? 'bg-success/10' : 'bg-destructive/10'
                       )}
                     >
                       <div
                         className={`w-2 h-2 rounded-full ${
-                          transaction.type === 'income' ? 'bg-success' : 'bg-destructive'
+                          transaction.type === !!TYPE_ENUM.INCOME ? 'bg-success' : 'bg-destructive'
                         }`}
                       />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-baseline gap-2">
                         <span className="font-semibold text-foreground">
-                          {transaction.category}
+                          {allCategories.find(cat => cat.id == transaction.category_id)?.name}
                         </span>
                         <span className="text-xs text-muted-foreground">
                           {new Date(transaction.date).toLocaleDateString('en-US', {
@@ -359,11 +376,11 @@ export function VisualizationPanel({
                   <div className="flex items-center gap-3">
                     <span
                       className={`font-bold text-base ${
-                        transaction.type === 'income' ? 'text-success' : 'text-destructive'
+                        transaction.type === !!TYPE_ENUM.INCOME ? 'text-success' : 'text-destructive'
                       }`}
                     >
-                      {transaction.type === 'income' ? '+' : '-'}
-                      {formatCurrency(transaction.amount)}
+                      {transaction.type === !!TYPE_ENUM.INCOME ? '+' : '-'}
+                      {formatCurrency(Number(transaction.amount))}
                     </span>
                     <Button
                       variant="ghost"

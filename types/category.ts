@@ -4,8 +4,3 @@ export interface Category {
     type: boolean;
     color: string;
 }
-
-export enum CATEGORY_ENUM {
-    INCOME = "false",
-    OUTCOME = "true"
-}
