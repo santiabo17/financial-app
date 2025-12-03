@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -13,20 +13,22 @@ import { useToast } from "@/hooks/use-toast"
 import { HandCoins, Plus, Check, Trash2, ArrowDownRight, ArrowUpRight } from "lucide-react"
 import { ConfirmationModal } from "./confirmation-modal"
 import { useTheme } from "next-themes"
-import { TYPE_ENUM, TYPE_TEXT_ENUM } from "@/types/transaction"
+import { Transaction, TYPE_ENUM, TYPE_TEXT_ENUM } from "@/types/transaction"
 import { CreateDebtForm, Debt, DEBT_STATUS_ENUM } from "@/types/debt"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select"
 import { Category } from "@/types/category"
 import { getCategories } from "@/services/category"
+import { formatDate } from "@/lib/date"
 
 interface DebtManagerProps {
   debts: Debt[]
+  transactions: Transaction[]
   onAddDebt: (debt: CreateDebtForm) => void
   onSettleDebt: (id: number) => void
   onDeleteDebt: (id: number) => void
 }
 
-export function DebtManager({ debts, onAddDebt, onSettleDebt, onDeleteDebt }: DebtManagerProps) {
+export function DebtManager({ debts, transactions, onAddDebt, onSettleDebt, onDeleteDebt }: DebtManagerProps) {
   const [type, setType] = useState<Boolean>(false)
   const [amount, setAmount] = useState("")
   const [person, setPerson] = useState("")
@@ -37,6 +39,7 @@ export function DebtManager({ debts, onAddDebt, onSettleDebt, onDeleteDebt }: De
   const [selectedDebtId, setSelectedDebtId] = useState<number | null>(null)
   const [categories, setCategories] = useState<Category[]>([]);
   const [categoryId, setCategoryId] = useState<number>();
+  const [transactionId, setTransactionId] = useState<number>();
   const [activeTab, setActiveTab] = useState("payable")
   const { toast } = useToast()
   const { theme } = useTheme();
@@ -44,7 +47,7 @@ export function DebtManager({ debts, onAddDebt, onSettleDebt, onDeleteDebt }: De
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const categoriesData = await getCategories(type ? TYPE_TEXT_ENUM.OUTCOME : TYPE_TEXT_ENUM.INCOME);
+        const categoriesData = await getCategories();
         console.log("categoriesData: ", categoriesData);
         setCategories(categoriesData);
       } catch (error) {
@@ -68,7 +71,8 @@ export function DebtManager({ debts, onAddDebt, onSettleDebt, onDeleteDebt }: De
       type,
       amount: Number.parseFloat(amount),
       category_id: categoryId,
-      description,
+      transaction_id: transactionId || null,
+      description: description || null,
       person: person,
       date: date,
       status: !!DEBT_STATUS_ENUM.NO_PAID
@@ -128,6 +132,10 @@ export function DebtManager({ debts, onAddDebt, onSettleDebt, onDeleteDebt }: De
 
   const defaultStyle = theme == "light" ? "bg-white text-black" : "bg-black text-white";
   const selectedStyle = `outline-2 outline-offset-1 outline-double ${theme == "light" ? "bg-black text-white outline-black" : "bg-white text-black outline-white"}`;
+
+  const completedMandatoryData = useMemo(() => {
+    return !!amount && !!person && !!categoryId && !!date;
+  }, [amount, person, categoryId, date]);
 
   return (
     <>
@@ -246,6 +254,26 @@ export function DebtManager({ debts, onAddDebt, onSettleDebt, onDeleteDebt }: De
                 </Select>
               </div>
 
+              {
+                type == !!TYPE_ENUM.INCOME &&
+                <div className="space-y-2">
+                  <Label htmlFor="category" className="text-sm font-medium">Associated Transaction</Label>
+                  <Select value={transactionId?.toString()} onValueChange={(value) => setTransactionId(value == "none" ? undefined : Number(value))}>
+                    <SelectTrigger id="transaction" className="h-11 w-full">
+                      <SelectValue placeholder="Select transaction" />
+                    </SelectTrigger>
+                    <SelectContent className={theme == "dark" ? "bg-black text-white" : "bg-white text-black"}>
+                      <SelectItem value={"none"}>No Transaction</SelectItem>
+                      {transactions.map((transaction) => (
+                        <SelectItem key={transaction.id} value={transaction.id.toString()}>
+                          {formatDate(transaction.date)} | {transaction.description || categories.find(cat => cat.id == transaction.id)?.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              }
+
               {/* Description */}
               <div className="space-y-2">
                 <Label htmlFor="debt-description" className="text-sm font-medium">
@@ -264,7 +292,7 @@ export function DebtManager({ debts, onAddDebt, onSettleDebt, onDeleteDebt }: De
               {/* Date */}
               <div className="space-y-2">
                 <Label htmlFor="debt-date" className="text-sm font-medium">
-                  Date Registered
+                  Date Registered *
                 </Label>
                 <Input
                   id="debt-date"
@@ -276,7 +304,7 @@ export function DebtManager({ debts, onAddDebt, onSettleDebt, onDeleteDebt }: De
               </div>
 
               {/* Submit Button */}
-              <Button type="submit" className={`w-full gap-2 h-11 shadow-sm cursor-pointer ${theme == "light" ? "bg-black text-white" : "bg-white text-black"}`}>
+              <Button type="submit" disabled={!completedMandatoryData} className={`w-full gap-2 h-11 shadow-sm cursor-pointer ${theme == "light" ? "bg-black text-white" : "bg-white text-black"}`}>
                 <Plus className="w-4 h-4" />
                 Register Debt
               </Button>
@@ -314,12 +342,12 @@ export function DebtManager({ debts, onAddDebt, onSettleDebt, onDeleteDebt }: De
                 ) : (
                   payableDebts.map((debt) => (
                     <Card key={debt.id} className="bg-muted/50 border-destructive/20">
-                      <CardContent className="pt-4">
+                      <CardContent className="">
                         <div className="flex items-start justify-between gap-4">
                           <div className="flex-1 space-y-2">
                             <div className="flex items-center gap-2">
-                              <Badge variant="destructive" className="font-semibold">
-                                ${debt.amount.toFixed(2)}
+                              <Badge className="font-semibold">
+                                ${Number(debt.amount).toFixed(2)}
                               </Badge>
                               <span className="text-sm font-medium">{debt.person}</span>
                             </div>
@@ -333,12 +361,12 @@ export function DebtManager({ debts, onAddDebt, onSettleDebt, onDeleteDebt }: De
                               size="sm"
                               variant="default"
                               onClick={() => handleSettleDebt(debt.id)}
-                              className="gap-1"
+                              className="gap-1 border cursor-pointer"
                             >
                               <Check className="w-3 h-3" />
                               Paid
                             </Button>
-                            <Button size="sm" variant="ghost" onClick={() => handleDeleteDebt(debt.id)}>
+                            <Button size="sm" variant="ghost" className="cursor-pointer" onClick={() => handleDeleteDebt(debt.id)}>
                               <Trash2 className="w-3 h-3" />
                             </Button>
                           </div>
@@ -358,12 +386,12 @@ export function DebtManager({ debts, onAddDebt, onSettleDebt, onDeleteDebt }: De
                 ) : (
                   receivableDebts.map((debt) => (
                     <Card key={debt.id} className="bg-muted/50 border-success/20">
-                      <CardContent className="pt-4">
+                      <CardContent className="">
                         <div className="flex items-start justify-between gap-4">
                           <div className="flex-1 space-y-2">
                             <div className="flex items-center gap-2">
                               <Badge variant="default" className="bg-success hover:bg-success/90 font-semibold">
-                                ${debt.amount.toFixed(2)}
+                                ${Number(debt.amount).toFixed(2)}
                               </Badge>
                               <span className="text-sm font-medium">{debt.person}</span>
                             </div>
@@ -377,12 +405,12 @@ export function DebtManager({ debts, onAddDebt, onSettleDebt, onDeleteDebt }: De
                               size="sm"
                               variant="default"
                               onClick={() => handleSettleDebt(debt.id)}
-                              className="gap-1 bg-success hover:bg-success/90"
+                              className="gap-1 bg-success hover:bg-success/90 border cursor-pointer"
                             >
                               <Check className="w-3 h-3" />
                               Received
                             </Button>
-                            <Button size="sm" variant="ghost" onClick={() => handleDeleteDebt(debt.id)}>
+                            <Button size="sm" variant="ghost" className="cursor-pointer" onClick={() => handleDeleteDebt(debt.id)}>
                               <Trash2 className="w-3 h-3" />
                             </Button>
                           </div>

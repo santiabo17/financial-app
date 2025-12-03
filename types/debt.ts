@@ -1,7 +1,7 @@
 export interface Debt {
   id: number,
   type: Boolean,
-  amount: number,
+  amount: string,
   category_id: number,
   transaction_id: number | null,
   person: string,
@@ -19,9 +19,9 @@ export interface CreateDebtForm {
   type: Boolean,
   amount: number,
   category_id: number,
-  transaction_id?: number,
+  transaction_id: number | null,
   person: string,
-  description?: string,
+  description: string | null,
   date: string,
   status: Boolean
 }

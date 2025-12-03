@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { AlertTriangle } from "lucide-react"
+import { useTheme } from "next-themes"
 
 interface ConfirmationModalProps {
   open: boolean
@@ -37,9 +38,11 @@ export function ConfirmationModal({
     onOpenChange(false)
   }
 
+  const { theme } = useTheme();
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className={`sm:max-w-[425px] ${theme == "light" ? "bg-white" : "bg-black"}`}>
         <DialogHeader>
           <div className="flex items-center gap-3 mb-2">
             {variant === "destructive" && (
@@ -51,11 +54,11 @@ export function ConfirmationModal({
           </div>
           <DialogDescription className="text-base">{description}</DialogDescription>
         </DialogHeader>
-        <DialogFooter className="gap-2 sm:gap-0">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+        <DialogFooter className="gap-2 sm:gap-4">
+          <Button variant="outline" onClick={() => onOpenChange(false)} className="cursor-pointer">
             {cancelLabel}
           </Button>
-          <Button variant={variant === "destructive" ? "destructive" : "default"} onClick={handleConfirm}>
+          <Button className={`${theme == "light" ? "bg-black text-white" : "bg-white text-black"} cursor-pointer`} onClick={handleConfirm}>
             {confirmLabel}
           </Button>
         </DialogFooter>

@@ -10,6 +10,8 @@ import { cn } from '@/lib/utils'
 import { Category } from '@/types/category'
 import { Transaction, TYPE_ENUM } from '@/types/transaction'
 import { getCategories } from '@/services/category'
+import { ConfirmationModal } from './confirmation-modal'
+import { toast } from './ui/use-toast'
 
 interface VisualizationPanelProps {
   transactions: Transaction[]
@@ -36,6 +38,9 @@ export function VisualizationPanel({
   onDeleteTransaction,
 }: VisualizationPanelProps) {
   const [allCategories, setAllCategories] = useState<Category[]>([]);
+  const [selectedTransactionId, setSelectedTransactionId] = useState<number | null>(null)
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false)
+
   useEffect(() => {
     const fetchCategories = async () => {
       const categoriesData = await getCategories();
@@ -43,6 +48,18 @@ export function VisualizationPanel({
     }
     fetchCategories();
   }, []);
+
+  const confirmDelete = () => {
+    if (selectedTransactionId) {
+      onDeleteTransaction(selectedTransactionId)
+      toast({
+        title: "Transaction Deleted",
+        description: "Transaction entry has been removed.",
+        variant: "destructive",
+      })
+    }
+  }
+
 
   const { outcomesByCategory, monthlyData, filteredTransactions, categoryEvolutionData } = useMemo(() => {
     const now = new Date()
@@ -385,8 +402,8 @@ export function VisualizationPanel({
                     <Button
                       variant="ghost"
                       size="icon"
-                      onClick={() => onDeleteTransaction(transaction.id)}
-                      className="text-muted-foreground hover:text-destructive h-8 w-8"
+                      onClick={() => {setSelectedTransactionId(transaction.id); setDeleteModalOpen(true);}}
+                      className="text-muted-foreground hover:text-destructive h-8 w-8 cursor-pointer"
                     >
                       <Trash2 className="w-4 h-4" />
                       <span className="sr-only">Delete transaction</span>
@@ -404,6 +421,16 @@ export function VisualizationPanel({
           )}
         </CardContent>
       </Card>
+      <ConfirmationModal
+        open={deleteModalOpen}
+        onOpenChange={setDeleteModalOpen}
+        title="Delete Transaction"
+        description="Are you sure you want to delete this transaction entry? This action cannot be undone."
+        confirmLabel="Delete"
+        cancelLabel="Cancel"
+        variant="destructive"
+        onConfirm={confirmDelete}
+      />
     </div>
   )
 }

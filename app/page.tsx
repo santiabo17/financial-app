@@ -13,7 +13,7 @@ import { useTheme } from 'next-themes'
 import { CreateDebtForm, Debt, DEBT_STATUS_ENUM } from '@/types/debt'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { DebtManager } from '@/components/debt-manager'
-import { addDebt, deleteDebt } from '@/services/debt'
+import { addDebt, deleteDebt, getDebts } from '@/services/debt'
 
 export type ViewMode = 'monthly' | 'yearly'
 
@@ -31,6 +31,11 @@ export default function FinanceTracker() {
       setTransactions(transactionsData);
     }
     fetchTransactions();
+    const fetchDebts = async () => {
+      const debtsData = await getDebts();
+      setDebts(debtsData);
+    }
+    fetchDebts();
   }, []);
 
   const handleAddTransaction = async (transaction: CreateTransactionForm) => {
@@ -153,7 +158,7 @@ export default function FinanceTracker() {
             <div className="grid lg:grid-cols-[340px_1fr] gap-6">
               {/* Left Sidebar - Data Entry */}
               <aside className="lg:sticky lg:top-24 lg:self-start">
-                <TransactionForm onSubmit={handleAddTransaction} />
+                <TransactionForm onSubmit={handleAddTransaction} onDeleteTransaction={handleDeleteTransaction}/>
               </aside>
 
               {/* Main Content Area */}
@@ -176,6 +181,7 @@ export default function FinanceTracker() {
           <TabsContent value="debts">
             <DebtManager
               debts={debts}
+              transactions={transactions}
               onAddDebt={handleAddDebt}
               onSettleDebt={handleSettleDebt}
               onDeleteDebt={handleDeleteDebt}

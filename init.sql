@@ -27,8 +27,9 @@ CREATE TABLE debts (
     transaction_id INT references transactions(id) on delete set NULL,
     person TEXT NOT NULL,
     description TEXT,
-    date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
+    date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    status BOOLEAN NOT NULL
+)
 
 -- Index on date
 CREATE INDEX idx_transaction_date ON transactions(date);
@@ -49,3 +50,5 @@ INSERT INTO categories (type, name, color) VALUES
 (TRUE, 'Debt Payments', '#F012BE'); -- Pink/Magenta for debt
 
 SELECT id, name, type, color FROM categories WHERE type = true;
+
+commit;

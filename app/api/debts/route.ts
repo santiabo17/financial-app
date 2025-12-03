@@ -2,6 +2,7 @@
 import { NextResponse } from 'next/server';
 import pool from '@/lib/db';
 import { CreateTransactionForm } from '@/types/transaction';
+import { CreateDebtForm } from '@/types/debt';
 
 export async function GET(request: Request) {
   try {
@@ -32,14 +33,14 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  const { type, amount, category_id, description, date } = await request.json() as CreateTransactionForm;
+  const { type, amount, category_id, transaction_id, person, description, date, status } = await request.json() as CreateDebtForm;
   const client = await pool.connect(); // Get a dedicated client from the pool
 
   try {
     await client.query('BEGIN');
 
-    const insertQuery = 'INSERT INTO transactions (type, amount, category_id, transaction_id, person, description, date, status) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *;';
-    const insertResult = await client.query(insertQuery, [type, amount, category_id, description, date]);
+    const insertQuery = 'INSERT INTO debts (type, amount, category_id, transaction_id, person, description, date, status) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *;';
+    const insertResult = await client.query(insertQuery, [type, amount, category_id, transaction_id, person, description, date, status]);
 
     const createdTransaction = insertResult.rows[0];
 
