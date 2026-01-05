@@ -12,6 +12,7 @@ import { Transaction, TYPE_ENUM } from '@/types/transaction'
 import { getCategories } from '@/services/category'
 import { ConfirmationModal } from './confirmation-modal'
 import { toast } from './ui/use-toast'
+import { Separator } from '@radix-ui/react-select'
 
 interface VisualizationPanelProps {
   transactions: Transaction[]
@@ -84,7 +85,7 @@ export function VisualizationPanel({
       .filter((t) => t.type === !!TYPE_ENUM.OUTCOME)
       .forEach((t) => {
         const category = allCategories.find(cat => cat.id == t.category_id)?.name || "";
-        outcomeMap.set(category, (outcomeMap.get(category) || 0) + Number(t.amount))
+        outcomeMap.set(category, (outcomeMap.get(category) || 0) + Number(t.amount) - t.debts?.reduce((acc, d) => acc + (d.status ? Number(d.amount) : 0), 0))
       })
 
     const outcomesByCategory = Array.from(outcomeMap.entries())
@@ -319,7 +320,9 @@ export function VisualizationPanel({
                     borderRadius: '8px',
                   }}
                 />
-                <Legend />
+                <Legend wrapperStyle={{
+                  paddingTop: "20px"
+                }}/>
                 {categories.map((category, index) => (
                   <Line
                     key={category.id}
@@ -354,9 +357,10 @@ export function VisualizationPanel({
           {filteredTransactions.length > 0 ? (
             <div className="space-y-2 max-h-[400px] overflow-y-auto pr-2">
               {filteredTransactions.slice(0, 20).map((transaction) => (
+              <div className='p-4 rounded-xl border-2 border-border/50'>  
                 <div
                   key={transaction.id}
-                  className="flex items-center justify-between p-4 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors border border-border/50"
+                  className="flex items-center justify-between bg-muted/30 hover:bg-muted/50 transition-colors "
                 >
                   <div className="flex-1 min-w-0 flex items-center gap-3">
                     <div
@@ -397,7 +401,7 @@ export function VisualizationPanel({
                       }`}
                     >
                       {transaction.type === !!TYPE_ENUM.INCOME ? '+' : '-'}
-                      {formatCurrency(Number(transaction.amount))}
+                      {formatCurrency(Number(transaction.amount) - transaction.debts?.reduce((acc, debt) => acc += debt.status ? Number(debt.amount) : 0, 0))}
                     </span>
                     <Button
                       variant="ghost"
@@ -410,6 +414,26 @@ export function VisualizationPanel({
                     </Button>
                   </div>
                 </div>
+                {transaction.debts?.length > 0 &&
+                <>
+                <Separator
+                  data-slot="button-group-separator"
+                  className="bg-gray-200/60 w-full h-[.7px] self-stretch mx-0 my-2"
+                />
+                <div >
+                  <h4 className="font-semibold text-foreground mb-1">Debts</h4>
+                  <div className='flex flex-col gap-3'>
+                    {transaction.debts?.map(debt => <div className={`border ${debt.status ? 'border-success text-success bg-success/5' : 'border-destructive text-destructive bg-destructive/5'} border-border/50 rounded-lg p-2 flex justify-between items-center`}>
+                      <h5 className={`text-sm w-full p-1 rounded-md`}>{debt.person} - {formatCurrency(Number(debt.amount))}{debt?.description ? ` - ${debt.description}` : ''}</h5>
+                      <h5 className={`text-sm h-fit !mb-0`}>
+                        {debt.status ? "Paid" : "Owed"}
+                      </h5>
+                    </div>)}
+                  </div>
+                </div>
+                </>
+                }
+              </div>
               ))}
             </div>
           ) : (

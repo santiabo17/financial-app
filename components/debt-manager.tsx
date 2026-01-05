@@ -29,7 +29,7 @@ interface DebtManagerProps {
 }
 
 export function DebtManager({ debts, transactions, onAddDebt, onSettleDebt, onDeleteDebt }: DebtManagerProps) {
-  const [type, setType] = useState<Boolean>(false)
+  const [type, setType] = useState<boolean>(false)
   const [amount, setAmount] = useState("")
   const [person, setPerson] = useState("")
   const [description, setDescription] = useState("")
@@ -88,6 +88,8 @@ export function DebtManager({ debts, transactions, onAddDebt, onSettleDebt, onDe
     setAmount("")
     setPerson("")
     setDescription("")
+    setCategoryId(undefined)
+    setTransactionId(undefined)
     setDate(new Date().toISOString().split("T")[0])
   }
 
@@ -106,8 +108,8 @@ export function DebtManager({ debts, transactions, onAddDebt, onSettleDebt, onDe
       onSettleDebt(selectedDebtId)
       const debt = debts.find((d) => d.id === selectedDebtId)
       toast({
-        title: "Debt Settled",
-        description: `Transaction created for ${debt?.type === !!TYPE_ENUM.OUTCOME ? "payment" : "receipt"} of $${debt?.amount}.`,
+        title: "Debt Paid",
+        description: `Transaction ${debt?.transaction_id ? `${debt.transaction_id} updated` : 'created'} for ${debt?.type === !!TYPE_ENUM.OUTCOME ? "payment" : "receipt"} of $${debt?.amount}.`,
         variant: "default",
       })
     }
@@ -240,7 +242,7 @@ export function DebtManager({ debts, transactions, onAddDebt, onSettleDebt, onDe
 
               <div className="space-y-2">
                 <Label htmlFor="category" className="text-sm font-medium">Category *</Label>
-                <Select value={categoryId?.toString()} onValueChange={(value) => setCategoryId(Number(value))} required>
+                <Select value={categoryId?.toString() || null} onValueChange={(value) => setCategoryId(Number(value))} required>
                   <SelectTrigger id="category" className="h-11 w-full">
                     <SelectValue placeholder="Select category" />
                   </SelectTrigger>
@@ -258,7 +260,7 @@ export function DebtManager({ debts, transactions, onAddDebt, onSettleDebt, onDe
                 type == !!TYPE_ENUM.INCOME &&
                 <div className="space-y-2">
                   <Label htmlFor="category" className="text-sm font-medium">Associated Transaction</Label>
-                  <Select value={transactionId?.toString()} onValueChange={(value) => setTransactionId(value == "none" ? undefined : Number(value))}>
+                  <Select value={transactionId?.toString() || null} onValueChange={(value) => setTransactionId(value == "none" ? undefined : Number(value))}>
                     <SelectTrigger id="transaction" className="h-11 w-full">
                       <SelectValue placeholder="Select transaction" />
                     </SelectTrigger>
@@ -346,7 +348,7 @@ export function DebtManager({ debts, transactions, onAddDebt, onSettleDebt, onDe
                         <div className="flex items-start justify-between gap-4">
                           <div className="flex-1 space-y-2">
                             <div className="flex items-center gap-2">
-                              <Badge className="font-semibold">
+                              <Badge className="font-semibold bg-destructive">
                                 ${Number(debt.amount).toFixed(2)}
                               </Badge>
                               <span className="text-sm font-medium">{debt.person}</span>
@@ -361,7 +363,7 @@ export function DebtManager({ debts, transactions, onAddDebt, onSettleDebt, onDe
                               size="sm"
                               variant="default"
                               onClick={() => handleSettleDebt(debt.id)}
-                              className="gap-1 border cursor-pointer"
+                              className="gap-1 border cursor-pointer bg-black"
                             >
                               <Check className="w-3 h-3" />
                               Paid
@@ -432,9 +434,9 @@ export function DebtManager({ debts, transactions, onAddDebt, onSettleDebt, onDe
         title={`Confirm ${selectedDebt?.type === !!TYPE_ENUM.OUTCOME ? "Payment" : "Receipt"}`}
         description={
           selectedDebt
-            ? `Are you sure you want to mark this debt as settled? This will create a ${
-                selectedDebt.type === !!TYPE_ENUM.OUTCOME ? "expense" : "income"
-              } transaction for $${selectedDebt.amount} and update your balance.`
+            ? `Are you sure you want to mark this debt as paid? This will ${selectedDebt.transaction_id ? "reduce the debt related" :
+              `create a ${selectedDebt.type === !!TYPE_ENUM.OUTCOME ? "outcome" : "income"}`
+              } transaction ${!selectedDebt.transaction_id ? 'for' : ''} $${selectedDebt.amount} and update your balance.`
             : ""
         }
         confirmLabel={selectedDebt?.type === !!TYPE_ENUM.OUTCOME ? "Mark as Paid" : "Mark as Received"}

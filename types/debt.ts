@@ -1,6 +1,6 @@
 export interface Debt {
   id: number,
-  type: Boolean,
+  type: boolean,
   amount: string,
   category_id: number,
   transaction_id: number | null,
@@ -16,12 +16,12 @@ export enum DEBT_STATUS_ENUM {
 }
 
 export interface CreateDebtForm {
-  type: Boolean,
+  type: boolean,
   amount: number,
   category_id: number,
   transaction_id: number | null,
   person: string,
   description: string | null,
   date: string,
-  status: Boolean
+  status: boolean
 }

@@ -22,6 +22,15 @@ export interface Transaction {
   category_id: number
   description: string
   date: string
+  debts: TransactionDebt[]
+}
+
+export interface TransactionDebt {
+  id: number
+  amount: string
+  status: boolean
+  person: string | null
+  description: string
 }
 
 export interface CreateTransactionForm {

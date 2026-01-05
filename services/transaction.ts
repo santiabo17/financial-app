@@ -1,9 +1,9 @@
 import { ApiResponse } from "@/types/api";
 import { CreateTransactionForm, Transaction } from "@/types/transaction";
 
-export async function getTransactions() {
+export async function getTransactions({order}: {order?: string}) {
     try {
-        const data: Transaction[] = await fetch("/api/transactions").then(data => data.json());
+        const data: Transaction[] = await fetch(`/api/transactions?order=${order}`).then(data => data.json());
         return data;
     } catch (error: any) {
         throw Error(error);

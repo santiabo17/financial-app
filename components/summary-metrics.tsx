@@ -37,7 +37,7 @@ export function SummaryMetrics({ transactions, viewMode }: SummaryMetricsProps) 
 
     const totalOutcomes = filteredTransactions
       .filter((t) => t.type === !!TYPE_ENUM.OUTCOME)
-      .reduce((sum, t) => sum + Number(t.amount), 0)
+      .reduce((sum, t) => sum + Number(t.amount)-t.debts?.reduce((acc, d) => acc + (d.status ? Number(d.amount) : 0), 0), 0)
 
     const netBalance = totalIncome - totalOutcomes
     const savingsRate = totalIncome > 0 ? (netBalance / totalIncome) * 100 : 0

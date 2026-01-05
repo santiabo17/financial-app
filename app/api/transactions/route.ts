@@ -20,11 +20,34 @@ export async function GET(request: Request) {
     const whereClause = conditions.length > 0
     ? `WHERE ${conditions.join(' AND ')}`
     : '';
+    const orderClause = searchParams.get("order") || "";
 
-    const query = `SELECT id, type, amount, category_id, description, date FROM transactions ${whereClause}`;
+    const query = `SELECT t.id, t.type, t.amount, t.category_id, t.description, t.date, d.id as debt_id, d.amount as debt_amount, d.status as debt_status, d.person as debt_person, d.description as debt_description FROM transactions t LEFT JOIN debts d ON t.id = d.transaction_id ${whereClause} ${orderClause}`;
     const result = await pool.query(query, values);
+
+    const transactions = result.rows.reduce((acc, row) => {
+      // Find if transaction already exists in our accumulator
+      let transaction = acc.find((t: any) => t.id === row.id);
+      
+      if (!transaction) {
+        transaction = { ...row, debts: [] };
+        delete transaction.debt_id; 
+        delete transaction.debt_amount;
+        delete transaction.debt_status;
+        delete transaction.debt_person;
+        acc.push(transaction);
+      }
+
+      if (row.debt_id) {
+        transaction.debts.push({ id: row.debt_id, amount: row.debt_amount, status: row.debt_status, person: row.debt_person, description: row.debt_description });
+      }
+      
+      return acc;
+    }, []);
+
+    console.log("transactions: ", transactions);
     
-    return NextResponse.json(result.rows);
+    return NextResponse.json(transactions);
   } catch (error) {
     console.error("Database query failed:", error);
     return NextResponse.json({ message: "Internal Server Error" }, { status: 500 });

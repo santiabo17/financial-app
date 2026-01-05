@@ -57,16 +57,44 @@ export async function POST(request: Request) {
   }
 }
 
+export async function PUT(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const debtId = searchParams.get('id');
+  if(!debtId){
+    return NextResponse.json({ message: "Debt id is mandatory." }, { status: 500 });
+  }
+  const client = await pool.connect(); // Get a dedicated client from the pool
+
+  try {
+    await client.query('BEGIN');
+    const updateQuery = 'UPDATE debts SET status = $1 WHERE id = $2;';
+    const insertResult = await client.query(updateQuery, [true, debtId]);
+
+    const createdTransaction = insertResult.rows[0];
+
+    await client.query('COMMIT');
+    return NextResponse.json({ success: true, message: "Debt registered successfully", data: createdTransaction });
+
+  } catch (error) {
+    await client.query('ROLLBACK');
+    console.error("Transaction failed:", error, request);
+    return NextResponse.json({ message: "Transaction failed" }, { status: 500 });
+
+  } finally {
+    client.release();
+  }
+}
+
 export async function DELETE(request: Request) {
   const { searchParams } = new URL(request.url);
-  const transactionId = searchParams.get('id');
+  const debtId = searchParams.get('id');
   const client = await pool.connect();
 
   try {
     await client.query('BEGIN');
 
     const deleteQuery = 'DELETE FROM debts WHERE id = $1';
-    const deleteResult = await client.query(deleteQuery, [transactionId]);
+    const deleteResult = await client.query(deleteQuery, [debtId]);
 
     if (deleteResult.rowCount === 0) {
       await client.query('ROLLBACK');

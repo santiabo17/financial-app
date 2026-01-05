@@ -13,7 +13,8 @@ import { useTheme } from 'next-themes'
 import { CreateDebtForm, Debt, DEBT_STATUS_ENUM } from '@/types/debt'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { DebtManager } from '@/components/debt-manager'
-import { addDebt, deleteDebt, getDebts } from '@/services/debt'
+import { addDebt, deleteDebt, getDebts, paidDebt } from '@/services/debt'
+import { DefaultCategoriesEnum } from '@/types/category'
 
 export type ViewMode = 'monthly' | 'yearly'
 
@@ -27,7 +28,7 @@ export default function FinanceTracker() {
 
   useEffect(() => {
     const fetchTransactions = async () => {
-      const transactionsData = await getTransactions();
+      const transactionsData = await getTransactions({order: "ORDER BY id DESC"});
       setTransactions(transactionsData);
     }
     fetchTransactions();
@@ -39,10 +40,6 @@ export default function FinanceTracker() {
   }, []);
 
   const handleAddTransaction = async (transaction: CreateTransactionForm) => {
-    // const newTransaction: Transaction = {
-    //   ...transaction,
-    //   id: crypto.randomUUID(),
-    // }
     const addTransactionResult = await addTransaction(transaction);
     setTransactions((prev) => [addTransactionResult, ...prev])
   }
@@ -62,24 +59,37 @@ export default function FinanceTracker() {
     }
     const debtResponse = await addDebt(newDebt);
     setDebts((prev) => [debtResponse, ...prev]);
+    if(debtResponse.transaction_id){
+      setTransactions(prev => prev.map(transaction => transaction.id == debtResponse.transaction_id ? {...transaction, debts: [...transaction.debts, debtResponse]} : transaction))
+    }
   }
 
-  const handleSettleDebt = (id: string) => {
+  const handleSettleDebt = async (id: number) => {
     const debt = debts.find((d) => d.id === id)
     if (!debt) return
 
     // Mark debt as settled
-    setDebts((prev) => prev.map((d) => (d.id === id ? { ...d, status: "settled" as const } : d)))
+    await paidDebt(id);
+    setDebts((prev) => prev.map((d) => (d.id === id ? { ...d, status: true } : d)))
 
-    // Create corresponding transaction
-    const newTransaction: CreateTransactionForm = {
-      type: debt.type === "payable" ? !!TYPE_ENUM.OUTCOME : !!TYPE_ENUM.INCOME,
-      amount: debt.amount,
-      category_id: debt.type === "payable" ? "Debt" : "Other",
-      description: `Debt settled: ${debt.counterparty} - ${debt.description}`,
-      date: new Date().toISOString().split("T")[0],
+    if(debt.transaction_id){
+      const transaction = transactions.find(transaction => transaction.id == debt.transaction_id);
+      if(transaction){
+        setTransactions((prev) => prev.map(transactionItem => transactionItem.id == transaction.id ? 
+          {...transactionItem, debts: transaction.debts.map(debt => debt.id == id ? {...debt, status: true} : debt)}
+          : transactionItem));
+      }
+    } else {
+      const newTransaction: CreateTransactionForm = {
+        type: debt.type,
+        amount: Number(debt.amount),
+        category_id: DefaultCategoriesEnum.DebtPayments,
+        description: `Debt paid: ${debt.person}${debt.description ? ` - ${debt.description}` : ""}`,
+        date: new Date().toISOString().split("T")[0],
+      }
+      const newTransactionResult = await addTransaction(newTransaction);
+      setTransactions((prev) => [newTransactionResult, ...prev]);
     }
-    // setTransactions((prev) => [newTransaction, ...prev])
   }
 
   const handleDeleteDebt = async (id: number) => {

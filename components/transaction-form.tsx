@@ -149,7 +149,7 @@ export function TransactionForm({ onSubmit, onDeleteTransaction }: TransactionFo
             {/* CategoryId */}
             <div className="space-y-2">
               <Label htmlFor="category" className="text-sm font-medium">Category *</Label>
-              <Select value={categoryId?.toString()} onValueChange={(value) => setCategoryId(Number(value))} required>
+              <Select value={categoryId ? categoryId?.toString() : null} onValueChange={(value) => setCategoryId(Number(value))} required>
                 <SelectTrigger id="category" className="h-11 w-full">
                   <SelectValue placeholder="Select category" />
                 </SelectTrigger>

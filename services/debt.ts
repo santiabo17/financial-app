@@ -23,6 +23,18 @@ export async function addDebt(debt: CreateDebtForm) {
     }
 }
 
+export async function paidDebt(debtId: number) {
+    try {
+        const data: ApiResponse<Debt> = await fetch(`/api/debts?id=${debtId}`, {
+            method: "PUT",
+        }).then(data => data.json());
+        return data.data;
+    } catch (error: any) {
+        console.log("error: ", error);
+        throw Error(error);
+    }
+}
+
 export async function deleteDebt(debtId: number) {
     try {
         const data: ApiResponse<null> = await fetch(`/api/debts?id=${debtId}`, {
