@@ -5,6 +5,12 @@ export interface Category {
     color: string;
 }
 
+export interface CreateCategoryForm {
+    name: string;
+    type: boolean;
+    color: string;
+}
+
 export enum DefaultCategoriesEnum {
   Salary = 1,
   Investments = 2,

@@ -25,11 +25,11 @@ export function Toaster() {
               )}
             </div>
             {action}
-            <ToastClose />
+            <ToastClose className='!text-foreground'/>
           </Toast>
         )
       })}
-      <ToastViewport />
+      <ToastViewport className="top-0 right-0 flex-col-reverse sm:bottom-auto sm:top-0 sm:right-0" />
     </ToastProvider>
   )
 }

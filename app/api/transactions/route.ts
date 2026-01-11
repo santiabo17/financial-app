@@ -80,6 +80,34 @@ export async function POST(request: Request) {
   }
 }
 
+export async function PUT(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const transactionId = searchParams.get('id');
+  const { type, amount, category_id, description, date } = await request.json() as CreateTransactionForm;
+  console.log("type", type, "category_id", category_id);
+  const client = await pool.connect(); // Get a dedicated client from the pool
+
+  try {
+    await client.query('BEGIN');
+
+    const updateQuery = 'UPDATE transactions SET type = $1, amount = $2, category_id = $3, description = $4, date = $5 where id = $6 RETURNING *;';
+    const updateResult = await client.query(updateQuery, [type, amount, category_id, description, date, transactionId]);
+
+    const updatedTransaction = updateResult.rows[0];
+
+    await client.query('COMMIT');
+    return NextResponse.json({ success: true, message: "Transaction updated successfully", data: updatedTransaction });
+
+  } catch (error) {
+    await client.query('ROLLBACK');
+    console.error("Transaction failed:", error, request);
+    return NextResponse.json({ message: "Transaction failed" }, { status: 500 });
+
+  } finally {
+    client.release();
+  }
+}
+
 export async function DELETE(request: Request) {
   const { searchParams } = new URL(request.url);
   const transactionId = searchParams.get('id');

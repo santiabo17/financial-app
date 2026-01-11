@@ -2,9 +2,10 @@
 
 import * as React from "react"
 import * as SelectPrimitive from "@radix-ui/react-select"
-import { CheckIcon, ChevronDownIcon, ChevronUpIcon } from "lucide-react"
+import { CheckIcon, ChevronDownIcon, ChevronUpIcon, Trash2 } from "lucide-react"
 
 import { cn } from "@/lib/utils"
+import { Button } from "./button"
 
 function Select({
   ...props
@@ -103,24 +104,48 @@ function SelectLabel({
 function SelectItem({
   className,
   children,
+  deleteFunc,
   ...props
-}: React.ComponentProps<typeof SelectPrimitive.Item>) {
+}: React.ComponentProps<typeof SelectPrimitive.Item> & {deleteFunc?: () => void}) {
   return (
-    <SelectPrimitive.Item
-      data-slot="select-item"
-      className={cn(
-        "focus:bg-accent focus:text-accent-foreground [&_svg:not([class*='text-'])]:text-muted-foreground relative flex w-full cursor-default items-center gap-2 rounded-sm py-1.5 pr-8 pl-2 text-sm outline-hidden select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 *:[span]:last:flex *:[span]:last:items-center *:[span]:last:gap-2",
-        className
-      )}
-      {...props}
-    >
-      <span className="absolute right-2 flex size-3.5 items-center justify-center">
-        <SelectPrimitive.ItemIndicator>
-          <CheckIcon className="size-4" />
-        </SelectPrimitive.ItemIndicator>
-      </span>
-      <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
-    </SelectPrimitive.Item>
+    <div className="flex items-center">
+      <SelectPrimitive.Item
+        data-slot="select-item"
+        className={cn(
+          "focus:bg-accent focus:text-accent-foreground [&_svg:not([class*='text-'])]:text-muted-foreground relative flex w-full cursor-default items-center gap-2 rounded-sm py-1.5 !pl-2 text-sm outline-hidden select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 *:[span]:last:flex *:[span]:last:items-center *:[span]:last:gap-2",
+          className
+        )}
+        {...props}
+      >
+        <div className="absolute right-2 flex items-center justify-between gap-2">
+          <div className="flex items-center justify-end gap-2">
+              <SelectPrimitive.ItemIndicator>
+                <CheckIcon className="size-4" />
+              </SelectPrimitive.ItemIndicator>
+          </div>
+        </div>
+        <SelectPrimitive.ItemText>
+            {children}
+        </SelectPrimitive.ItemText>
+      </SelectPrimitive.Item>
+      {
+        !!deleteFunc &&
+        <Button
+          type="button"
+          className="z-50 cursor-pointer !pointer-events-auto z-50 !p-2"
+          onPointerDown={(e) => e.stopPropagation()}
+          onMouseDown={(e) => e.stopPropagation()}
+          onClick={(e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            deleteFunc();
+          }}
+        >
+          <Trash2 className="h-3.5 w-3.5" />
+        </Button>
+        
+      }
+    </div>
   )
 }
 

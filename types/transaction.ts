@@ -30,7 +30,7 @@ export interface TransactionDebt {
   amount: string
   status: boolean
   person: string | null
-  description: string
+  description: string | null
 }
 
 export interface CreateTransactionForm {

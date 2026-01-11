@@ -58,7 +58,7 @@ export function ConfirmationModal({
           <Button variant="outline" onClick={() => onOpenChange(false)} className="cursor-pointer">
             {cancelLabel}
           </Button>
-          <Button className={`${theme == "light" ? "bg-black text-white" : "bg-white text-black"} cursor-pointer`} onClick={handleConfirm}>
+          <Button className={`${theme == "light" ? "bg-black text-white hover:bg-black" : "bg-white text-black hover:bg-white"} cursor-pointer`} onClick={handleConfirm}>
             {confirmLabel}
           </Button>
         </DialogFooter>

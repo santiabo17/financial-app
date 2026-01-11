@@ -1,5 +1,5 @@
-import { ErrorResponse } from "@/types/api";
-import { Category } from "@/types/category";
+import { ApiResponse, ErrorResponse } from "@/types/api";
+import { Category, CreateCategoryForm } from "@/types/category";
 import { TransactionType } from "@/types/transaction";
 
 export async function getCategories(type?: TransactionType) {
@@ -19,5 +19,28 @@ export async function getCategories(type?: TransactionType) {
         return data;
     } catch (error: any) {
         throw error;
+    }
+}
+
+export async function addCategory(category: CreateCategoryForm) {
+    try {
+        const data: ApiResponse<Category> = await fetch("/api/categories", {
+            body: JSON.stringify(category),
+            method: "POST",
+        }).then(data => data.json());
+        return data.data;
+    } catch (error: any) {
+        throw Error(error);
+    }
+}
+
+export async function deleteCategory(debtId: number) {
+    try {
+        const data: ApiResponse<null> = await fetch(`/api/categories?id=${debtId}`, {
+            method: "DELETE",
+        }).then(data => data.json());
+        return data.success;
+    } catch (error: any) {
+        throw Error(error);
     }
 }

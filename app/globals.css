@@ -1,27 +1,73 @@
 @import 'tailwindcss';
 
-@theme inline {
+@theme {
+  --color-primary: var(--color-primary);
+  --color-primary-foreground: var(--color-primary-foreground);
+  --color-background: var(--color-background);
+  --color-foreground: var(--color-foreground);
+  --color-success: var(--color-success);
+  --color-destructive: var(--color-destructive);
+  --color-muted: var(--color-muted);
+  --color-muted-foreground: var(--color-muted-foreground);
+  --color-accent:var(--color-muted-accent);
+  --color-accent-foreground: var(--color-accent-foreground);
+}
+
+@layer utilities {
+  [data-state='open'].animate-in {
+    animation: slideIn 0.2s ease-out;
+  }
+
+  [data-state='closed'].animate-out {
+    animation: slideOut 0.2s ease-in forwards;
+  }
+
+  @keyframes slideIn {
+    from {
+      transform: translateY(-100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+
+  @keyframes slideOut {
+    from {
+      transform: translateX(0);
+      opacity: 1;
+    }
+    to {
+      transform: translateX(100%);
+      opacity: 0;
+    }
+  }
+}
+
+@layer base {
+  :root {
   --font-sans: 'Geist', 'Geist Fallback';
   --font-mono: 'Geist Mono', 'Geist Mono Fallback';
 
   /* Professional Financial Theme */
-  --color-background: rgb(248, 249, 250);
-  --color-foreground: rgb(30, 41, 59);
+  --color-background: rgb(255, 255, 255);
+  --color-foreground: rgb(0, 0, 0);
   
   --color-card: rgb(255, 255, 255);
   --color-card-foreground: rgb(30, 41, 59);
   
-  --color-primary: rgb(14, 165, 233);
-  --color-primary-foreground: rgb(255, 255, 255);
+  --color-primary: rgb(255,255,255);
+  --color-primary-foreground: rgb(0, 0, 0);
   
   --color-secondary: rgb(241, 245, 249);
-  --color-secondary-foreground: rgb(51, 65, 85);
+  --color-secondary-foreground: rgb(50, 50, 50);
   
   --color-muted: rgb(241, 245, 249);
-  --color-muted-foreground: rgb(100, 116, 139);
+  --color-muted-foreground: rgb(49, 49, 49);
   
   --color-accent: rgb(226, 232, 240);
-  --color-accent-foreground: rgb(30, 41, 59);
+  --color-accent-foreground: rgb(50, 50, 50);
   
   --color-destructive: rgb(239, 68, 68);
   --color-destructive-foreground: rgb(255, 255, 255);
@@ -34,25 +80,25 @@
   --color-ring: rgb(14, 165, 233);
   
   --radius: 0.5rem;
-}
+  }
 
-.dark {
-  --color-background: rgb(15, 23, 42);
-  --color-foreground: rgb(248, 250, 252);
+  .dark {
+  --color-background: rgb(0, 0, 0);
+  --color-foreground: rgb(255, 255, 255);
   
   --color-card: rgb(30, 41, 59);
   --color-card-foreground: rgb(248, 250, 252);
   
-  --color-primary: rgb(14, 165, 233);
-  --color-primary-foreground: rgb(255, 255, 255);
+  --color-primary: rgb(0,0,0) !important;
+  --color-primary-foreground: rgb(255, 255, 255) !important;
   
-  --color-secondary: rgb(51, 65, 85);
+  --color-secondary: rgb(50, 50, 50);
   --color-secondary-foreground: rgb(226, 232, 240);
+
+  --color-muted: rgb(35, 35, 35);
+  --color-muted-foreground: rgb(241, 241, 241);
   
-  --color-muted: rgb(51, 65, 85);
-  --color-muted-foreground: rgb(148, 163, 184);
-  
-  --color-accent: rgb(51, 65, 85);
+  --color-accent: rgb(50, 50, 50);
   --color-accent-foreground: rgb(248, 250, 252);
   
   --color-destructive: rgb(239, 68, 68);
@@ -64,4 +110,5 @@
   --color-border: rgb(51, 65, 85);
   --color-input: rgb(51, 65, 85);
   --color-ring: rgb(14, 165, 233);
+}
 }

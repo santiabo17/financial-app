@@ -28,11 +28,12 @@ export async function POST(request: Request) {
   try {
     await client.query('BEGIN');
 
-    const insertQuery = 'INSERT INTO categories (name, type, color) VALUES ($1, $2, $3);';
+    const insertQuery = 'INSERT INTO categories (name, type, color) VALUES ($1, $2, $3) RETURNING *;;';
     const insertResult = await client.query(insertQuery, [name, type, color]);
+    const createdCategory = insertResult.rows[0];
 
     await client.query('COMMIT');
-    return NextResponse.json({ success: true, message: "Category inserted successfully" });
+    return NextResponse.json({ success: true, message: "Category inserted successfully", data: createdCategory });
   } catch (error) {
     await client.query('ROLLBACK');
     console.error("Transaction failed:", error);

@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui-old/card'
 import { ViewMode } from '@/app/page'
 import { Button } from '@/components/ui-old/button'
-import { Trash2, PieChartIcon, BarChart3, Receipt, TrendingUp } from 'lucide-react'
+import { Trash2, PieChartIcon, BarChart3, Receipt, TrendingUp, Edit2 } from 'lucide-react'
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid, LineChart, Line } from 'recharts'
 import { cn } from '@/lib/utils'
 import { Category } from '@/types/category'
@@ -18,6 +18,9 @@ interface VisualizationPanelProps {
   transactions: Transaction[]
   viewMode: ViewMode
   onDeleteTransaction: (id: number) => void
+  onDeleteDebt: (id: number) => void
+  selectedTransactionId: number | null
+  setSelectedTransactionId: (data: number | null) => void
 }
 
 const Outcome_COLORS = [
@@ -37,22 +40,61 @@ export function VisualizationPanel({
   transactions,
   viewMode,
   onDeleteTransaction,
+  onDeleteDebt,
+  selectedTransactionId,
+  setSelectedTransactionId
 }: VisualizationPanelProps) {
   const [allCategories, setAllCategories] = useState<Category[]>([]);
-  const [selectedTransactionId, setSelectedTransactionId] = useState<number | null>(null)
-  const [deleteModalOpen, setDeleteModalOpen] = useState(false)
+  const [deleteTransactionId, setDeleteTransactionId] = useState<number | null>(null);
+  const [selectedDebtId, setSelectedDebtId] = useState<number | null>(null)
+  const [deleteDebtModalOpen, setDeleteDebtModalOpen] = useState(false)
+  const [deleteTransactionModalOpen, setDeleteTransactionModalOpen] = useState(false)
 
   useEffect(() => {
     const fetchCategories = async () => {
-      const categoriesData = await getCategories();
-      setAllCategories(categoriesData);
+      try {
+        const categoriesData = await getCategories();
+        setAllCategories(categoriesData);
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: `Problem fetching categories.`,
+          variant: "default",
+        })
+        setAllCategories([]);
+      }
     }
     fetchCategories();
   }, []);
 
-  const confirmDelete = () => {
-    if (selectedTransactionId) {
-      onDeleteTransaction(selectedTransactionId)
+  const handleDeleteDebt = (id: number) => {
+    setSelectedDebtId(id)
+    setDeleteDebtModalOpen(true)
+  }
+
+  const confirmDeleteDebt = () => {
+    if (selectedDebtId) {
+      onDeleteDebt(selectedDebtId)
+      toast({
+        title: "Debt Deleted",
+        description: "Debt entry has been removed.",
+        variant: "destructive",
+      })
+    }
+  }
+
+  const handleUpdateTransaction = (id: number) => {
+    setSelectedTransactionId(id)
+  }
+
+  const handleDeleteTransaction = (id: number) => {
+    setDeleteTransactionId(id)
+    setDeleteTransactionModalOpen(true)
+  }
+
+  const confirmDeleteTransaction = () => {
+    if (deleteTransactionId) {
+      onDeleteTransaction(deleteTransactionId)
       toast({
         title: "Transaction Deleted",
         description: "Transaction entry has been removed.",
@@ -134,8 +176,6 @@ export function VisualizationPanel({
             .reduce((sum, t) => sum + Number(t.amount), 0)
           dataPoint[category?.id] = categoryTotal
         })
-
-        console.log("categories: ", categories, filtered, dataPoint);
         
         categoryEvolutionData.push(dataPoint)
       }
@@ -357,7 +397,7 @@ export function VisualizationPanel({
           {filteredTransactions.length > 0 ? (
             <div className="space-y-2 max-h-[400px] overflow-y-auto pr-2">
               {filteredTransactions.slice(0, 20).map((transaction) => (
-              <div className='p-4 rounded-xl border-2 border-border/50'>  
+              <div className='p-4 rounded-xl border-2 border-border/50 min-w-0'>  
                 <div
                   key={transaction.id}
                   className="flex items-center justify-between bg-muted/30 hover:bg-muted/50 transition-colors "
@@ -406,11 +446,20 @@ export function VisualizationPanel({
                     <Button
                       variant="ghost"
                       size="icon"
-                      onClick={() => {setSelectedTransactionId(transaction.id); setDeleteModalOpen(true);}}
+                      onClick={() => handleUpdateTransaction(transaction.id)}
+                      className="text-muted-foreground h-8 w-8 cursor-pointer"
+                    >
+                      <Edit2 className="w-4 h-4" />
+                      {/* <span className="sr-only">Delete transaction</span> */}
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleDeleteTransaction(transaction.id)}
                       className="text-muted-foreground hover:text-destructive h-8 w-8 cursor-pointer"
                     >
                       <Trash2 className="w-4 h-4" />
-                      <span className="sr-only">Delete transaction</span>
+                      {/* <span className="sr-only">Delete transaction</span> */}
                     </Button>
                   </div>
                 </div>
@@ -425,9 +474,19 @@ export function VisualizationPanel({
                   <div className='flex flex-col gap-3'>
                     {transaction.debts?.map(debt => <div className={`border ${debt.status ? 'border-success text-success bg-success/5' : 'border-destructive text-destructive bg-destructive/5'} border-border/50 rounded-lg p-2 flex justify-between items-center`}>
                       <h5 className={`text-sm w-full p-1 rounded-md`}>{debt.person} - {formatCurrency(Number(debt.amount))}{debt?.description ? ` - ${debt.description}` : ''}</h5>
-                      <h5 className={`text-sm h-fit !mb-0`}>
-                        {debt.status ? "Paid" : "Owed"}
-                      </h5>
+                      <div className='flex items-center gap-2'>
+                        <h5 className={`text-sm h-fit !mb-0`}>
+                          {debt.status ? "Paid" : "Owed"}
+                        </h5>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => {handleDeleteDebt(debt.id)}}
+                          className="text-muted-foreground hover:text-destructive h-6 w-6 cursor-pointer"
+                        >
+                          <Trash2 className="!w-4 !h-4" />
+                        </Button>
+                      </div>
                     </div>)}
                   </div>
                 </div>
@@ -446,14 +505,24 @@ export function VisualizationPanel({
         </CardContent>
       </Card>
       <ConfirmationModal
-        open={deleteModalOpen}
-        onOpenChange={setDeleteModalOpen}
+        open={deleteDebtModalOpen}
+        onOpenChange={setDeleteDebtModalOpen}
+        title="Delete Debt"
+        description="Are you sure you want to delete this debt entry? This will increase the outcome of the associated transaction. This action cannot be undone."
+        confirmLabel="Delete"
+        cancelLabel="Cancel"
+        variant="destructive"
+        onConfirm={confirmDeleteDebt}
+      />
+      <ConfirmationModal
+        open={deleteTransactionModalOpen}
+        onOpenChange={setDeleteTransactionModalOpen}
         title="Delete Transaction"
         description="Are you sure you want to delete this transaction entry? This action cannot be undone."
         confirmLabel="Delete"
         cancelLabel="Cancel"
         variant="destructive"
-        onConfirm={confirmDelete}
+        onConfirm={confirmDeleteTransaction}
       />
     </div>
   )

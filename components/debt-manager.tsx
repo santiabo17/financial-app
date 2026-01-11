@@ -16,19 +16,22 @@ import { useTheme } from "next-themes"
 import { Transaction, TYPE_ENUM, TYPE_TEXT_ENUM } from "@/types/transaction"
 import { CreateDebtForm, Debt, DEBT_STATUS_ENUM } from "@/types/debt"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select"
-import { Category } from "@/types/category"
+import { Category, DefaultCategoriesEnum } from "@/types/category"
 import { getCategories } from "@/services/category"
 import { formatDate } from "@/lib/date"
 
 interface DebtManagerProps {
   debts: Debt[]
   transactions: Transaction[]
+  categories: Category[]
   onAddDebt: (debt: CreateDebtForm) => void
   onSettleDebt: (id: number) => void
   onDeleteDebt: (id: number) => void
+  onDeleteCategory: (id: number) => void
+  onOpenCategoryModal: () => void
 }
 
-export function DebtManager({ debts, transactions, onAddDebt, onSettleDebt, onDeleteDebt }: DebtManagerProps) {
+export function DebtManager({ debts, transactions, categories, onAddDebt, onSettleDebt, onDeleteDebt, onDeleteCategory, onOpenCategoryModal }: DebtManagerProps) {
   const [type, setType] = useState<boolean>(false)
   const [amount, setAmount] = useState("")
   const [person, setPerson] = useState("")
@@ -37,7 +40,6 @@ export function DebtManager({ debts, transactions, onAddDebt, onSettleDebt, onDe
   const [settleModalOpen, setSettleModalOpen] = useState(false)
   const [deleteModalOpen, setDeleteModalOpen] = useState(false)
   const [selectedDebtId, setSelectedDebtId] = useState<number | null>(null)
-  const [categories, setCategories] = useState<Category[]>([]);
   const [categoryId, setCategoryId] = useState<number>();
   const [transactionId, setTransactionId] = useState<number>();
   const [activeTab, setActiveTab] = useState("payable")
@@ -45,22 +47,9 @@ export function DebtManager({ debts, transactions, onAddDebt, onSettleDebt, onDe
   const { theme } = useTheme();
 
   useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const categoriesData = await getCategories();
-        console.log("categoriesData: ", categoriesData);
-        setCategories(categoriesData);
-      } catch (error) {
-        console.log("error: ", error);
-        toast({
-          title: "Error",
-          description: `Problem fetching categories.`,
-          variant: "default",
-        })
-        setCategories([]);
-      }
+    if(type == !!TYPE_ENUM.OUTCOME){
+      setTransactionId(undefined);
     }
-    fetchCategories();
   }, [type]);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -139,6 +128,12 @@ export function DebtManager({ debts, transactions, onAddDebt, onSettleDebt, onDe
     return !!amount && !!person && !!categoryId && !!date;
   }, [amount, person, categoryId, date]);
 
+  const excededDebtAmount = useMemo(() => {
+    if(!transactionId) return false;
+    const transaction = transactions.find(transaction => transaction.id == transactionId);
+    return (Number(amount) > (Number(transaction?.amount) - Number(transaction?.debts.reduce((acc, debt) => acc + (debt.status ? Number(debt.amount) : 0), 0))));
+  }, [transactionId, amount]);
+
   return (
     <>
       <div className="grid lg:grid-cols-[340px_1fr] gap-6">
@@ -146,8 +141,8 @@ export function DebtManager({ debts, transactions, onAddDebt, onSettleDebt, onDe
         <Card className="shadow-lg border-border/50 lg:sticky lg:top-24 lg:self-start">
           <CardHeader className="space-y-1">
             <CardTitle className="text-xl flex items-center gap-2">
-              <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
-                <HandCoins className="w-4 h-4 text-primary" />
+              <div className="w-8 h-8 bg-foreground/10 rounded-lg flex items-center justify-center">
+                <HandCoins className="w-4 h-4 text-foreground" />
               </div>
               Add Debt
             </CardTitle>
@@ -222,6 +217,9 @@ export function DebtManager({ debts, transactions, onAddDebt, onSettleDebt, onDe
                     required
                   />
                 </div>
+                {
+                  excededDebtAmount ? 
+                  <span className="text-[13px]">Debt amount cannot be bigger than transaction pending</span> : null}
               </div>
 
               {/* Counterparty */}
@@ -241,15 +239,20 @@ export function DebtManager({ debts, transactions, onAddDebt, onSettleDebt, onDe
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="category" className="text-sm font-medium">Category *</Label>
-                <Select value={categoryId?.toString() || null} onValueChange={(value) => setCategoryId(Number(value))} required>
-                  <SelectTrigger id="category" className="h-11 w-full">
+                <div className="flex justify-between">
+                  <Label htmlFor="category" className="text-sm font-medium">Category *</Label>
+                  <Button type="button" size={"sm"} className="cursor-pointer px-2 py-[3px] h-fit text-[12px] border text-background bg-foreground hover:bg-background hover:text-foreground" onClick={() => onOpenCategoryModal()}>Add +</Button>
+                </div>
+                <Select value={(categoryId?.toString() || null) as any} onValueChange={(value) => setCategoryId(Number(value))} required>
+                  <SelectTrigger id="category" className="!h-11 w-full">
                     <SelectValue placeholder="Select category" />
                   </SelectTrigger>
-                  <SelectContent className={theme == "dark" ? "bg-black text-white" : "bg-white text-black"}>
-                    {categories.map((cat) => (
-                      <SelectItem key={cat.id} value={cat.id.toString()}>
-                        {cat.name}
+                  <SelectContent className={theme == "dark" ? "bg-black text-white w-full" : "bg-white text-black w-full"}>
+                    {categories.filter(cat => cat.type == type).map((cat) => (
+                      <SelectItem key={cat.id} value={cat.id.toString()} deleteFunc={!Object.values(DefaultCategoriesEnum).includes(cat.id) ? () => onDeleteCategory(cat.id) : undefined}>
+                        <div className="flex items-center gap-2 !w-full !h-8">
+                          {cat.name}
+                        </div>
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -260,8 +263,8 @@ export function DebtManager({ debts, transactions, onAddDebt, onSettleDebt, onDe
                 type == !!TYPE_ENUM.INCOME &&
                 <div className="space-y-2">
                   <Label htmlFor="category" className="text-sm font-medium">Associated Transaction</Label>
-                  <Select value={transactionId?.toString() || null} onValueChange={(value) => setTransactionId(value == "none" ? undefined : Number(value))}>
-                    <SelectTrigger id="transaction" className="h-11 w-full">
+                  <Select value={(transactionId?.toString() || null) as any} onValueChange={(value) => setTransactionId(value == "none" ? undefined : Number(value))}>
+                    <SelectTrigger id="transaction" className="!h-11 w-full">
                       <SelectValue placeholder="Select transaction" />
                     </SelectTrigger>
                     <SelectContent className={theme == "dark" ? "bg-black text-white" : "bg-white text-black"}>
@@ -306,7 +309,7 @@ export function DebtManager({ debts, transactions, onAddDebt, onSettleDebt, onDe
               </div>
 
               {/* Submit Button */}
-              <Button type="submit" disabled={!completedMandatoryData} className={`w-full gap-2 h-11 shadow-sm cursor-pointer ${theme == "light" ? "bg-black text-white" : "bg-white text-black"}`}>
+              <Button type="submit" disabled={!completedMandatoryData || excededDebtAmount} className={`w-full gap-2 h-11 shadow-sm cursor-pointer ${theme == "light" ? "bg-black text-white" : "bg-white text-black"}`}>
                 <Plus className="w-4 h-4" />
                 Register Debt
               </Button>
