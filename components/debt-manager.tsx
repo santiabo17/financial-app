@@ -122,7 +122,7 @@ export function DebtManager({ debts, transactions, categories, onAddDebt, onSett
   const selectedDebt = debts.find((d) => d.id === selectedDebtId)
 
   const defaultStyle = theme == "light" ? "bg-white text-black" : "bg-black text-white";
-  const selectedStyle = `outline-2 outline-offset-1 outline-double ${theme == "light" ? "bg-black text-white outline-black" : "bg-white text-black outline-white"}`;
+  const selectedStyle = `outline-2 outline-offset-1 outline-double ${theme == "light" ? "bg-black text-white outline-black hover:bg-black" : "bg-white text-black outline-white hover:bg-white"}`;
 
   const completedMandatoryData = useMemo(() => {
     return !!amount && !!person && !!categoryId && !!date;
@@ -136,7 +136,7 @@ export function DebtManager({ debts, transactions, categories, onAddDebt, onSett
 
   return (
     <>
-      <div className="grid lg:grid-cols-[340px_1fr] gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-[340px_1fr] gap-6">
         {/* Left - Add Debt Form */}
         <Card className="shadow-lg border-border/50 lg:sticky lg:top-24 lg:self-start">
           <CardHeader className="space-y-1">
@@ -171,31 +171,6 @@ export function DebtManager({ debts, transactions, categories, onAddDebt, onSett
                     Outcome
                   </Button>
                 </div>
-                {/* <div className="grid grid-cols-2 gap-2">
-                  <Button
-                    type="button"
-                    variant={type === "payable" ? "default" : "outline"}
-                    onClick={() => setType("payable")}
-                    className={
-                      type === "payable"
-                        ? "bg-destructive hover:bg-destructive/90 text-destructive-foreground shadow-sm"
-                        : ""
-                    }
-                  >
-                    <ArrowDownRight className="w-4 h-4 mr-1" />I Owe
-                  </Button>
-                  <Button
-                    type="button"
-                    variant={type === "receivable" ? "default" : "outline"}
-                    onClick={() => setType("receivable")}
-                    className={
-                      type === "receivable" ? "bg-success hover:bg-success/90 text-success-foreground shadow-sm" : ""
-                    }
-                  >
-                    <ArrowUpRight className="w-4 h-4 mr-1" />
-                    Owed to Me
-                  </Button>
-                </div> */}
               </div>
 
               {/* Amount */}
@@ -348,25 +323,36 @@ export function DebtManager({ debts, transactions, categories, onAddDebt, onSett
                   payableDebts.map((debt) => (
                     <Card key={debt.id} className="bg-muted/50 border-destructive/20">
                       <CardContent className="">
-                        <div className="flex items-start justify-between gap-4">
+                        <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
                           <div className="flex-1 space-y-2">
                             <div className="flex items-center gap-2">
-                              <Badge className="font-semibold bg-destructive">
+                              <Badge className="font-semibold bg-destructive text-white">
                                 ${Number(debt.amount).toFixed(2)}
                               </Badge>
                               <span className="text-sm font-medium">{debt.person}</span>
+                              <span>|</span>
+                              <span className={`text-sm font-medium font-semibold text-foreground`}>
+                                {categories.find(cat => cat.id == debt.category_id)?.name}
+                              </span>
+                              {categories.find(cat => cat.id == debt.category_id) && 
+                                <div
+                                  className={`w-2 h-2 rounded-full bg-[${categories.find(cat => cat.id == debt.category_id)?.color}]`}
+                                  style={{backgroundColor: categories.find(cat => cat.id == debt.category_id)?.color}}
+                                />
+                              }
                             </div>
                             {debt.description && <p className="text-sm text-muted-foreground">{debt.description}</p>}
                             <p className="text-xs text-muted-foreground">
                               Registered: {new Date(debt.date).toLocaleDateString()}
                             </p>
                           </div>
-                          <div className="flex gap-2">
+                          <div className="w-full h-[.6px] bg-foreground/60 block sm:hidden"></div>
+                          <div className="flex ml-auto sm:ml-0 gap-2">
                             <Button
                               size="sm"
                               variant="default"
                               onClick={() => handleSettleDebt(debt.id)}
-                              className="gap-1 border cursor-pointer bg-black"
+                              className="gap-1 border cursor-pointer bg-background hover:bg-foreground hover:text-background duration-500"
                             >
                               <Check className="w-3 h-3" />
                               Paid
@@ -392,25 +378,36 @@ export function DebtManager({ debts, transactions, categories, onAddDebt, onSett
                   receivableDebts.map((debt) => (
                     <Card key={debt.id} className="bg-muted/50 border-success/20">
                       <CardContent className="">
-                        <div className="flex items-start justify-between gap-4">
+                        <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
                           <div className="flex-1 space-y-2">
                             <div className="flex items-center gap-2">
-                              <Badge variant="default" className="bg-success hover:bg-success/90 font-semibold">
+                              <Badge variant="default" className="bg-success hover:bg-success/90 text-white font-semibold">
                                 ${Number(debt.amount).toFixed(2)}
                               </Badge>
                               <span className="text-sm font-medium">{debt.person}</span>
+                              <span>|</span>
+                              <span className={`text-sm font-medium font-semibold text-foreground`}>
+                                {categories.find(cat => cat.id == debt.category_id)?.name}
+                              </span>
+                              {categories.find(cat => cat.id == debt.category_id) && 
+                                <div
+                                  className={`w-2 h-2 rounded-full bg-[${categories.find(cat => cat.id == debt.category_id)?.color}]`}
+                                  style={{backgroundColor: categories.find(cat => cat.id == debt.category_id)?.color}}
+                                />
+                              }
                             </div>
                             {debt.description && <p className="text-sm text-muted-foreground">{debt.description}</p>}
                             <p className="text-xs text-muted-foreground">
                               Registered: {new Date(debt.date).toLocaleDateString()}
                             </p>
                           </div>
-                          <div className="flex gap-2">
+                          <div className="w-full h-[.6px] bg-foreground/60 block sm:hidden"></div>
+                          <div className="flex ml-auto sm:ml-0 gap-2">
                             <Button
                               size="sm"
                               variant="default"
                               onClick={() => handleSettleDebt(debt.id)}
-                              className="gap-1 bg-success hover:bg-success/90 border cursor-pointer"
+                              className="gap-1 bg-background hover:bg-foreground hover:text-background transition duration-300 border cursor-pointer"
                             >
                               <Check className="w-3 h-3" />
                               Received

@@ -201,6 +201,7 @@ export default function FinanceTracker() {
       if (!debt) return
   
       // Mark debt as settled
+      console.log("paid debt: ", debt);
       await paidDebt(id);
       setDebts((prev) => prev.map((d) => (d.id === id ? { ...d, status: true } : d)))
   
@@ -214,13 +215,15 @@ export default function FinanceTracker() {
       } else {
         const newTransaction: CreateTransactionForm = {
           type: debt.type,
-          amount: Number(debt.amount),
+          amount: Number(debt.amount || 0),
           category_id: DefaultCategoriesEnum.DebtPayments,
           description: `Debt paid: ${debt.person}${debt.description ? ` - ${debt.description}` : ""}`,
           date: new Date().toISOString().split("T")[0],
         }
+        console.log("newTransaction: ", newTransaction);
         const newTransactionResult = await addTransaction(newTransaction);
-        setTransactions((prev) => [newTransactionResult, ...prev]);
+        console.log("newTransactionResult: ", newTransactionResult, transactions);
+        setTransactions((prev) => [{...newTransactionResult, debts: []}, ...prev]);
       }
       toast({
         title: successTitle(ACTION.PAY),
@@ -263,7 +266,7 @@ export default function FinanceTracker() {
   }
 
   const defaultStyle = theme == "light" ? "bg-white text-black" : "bg-black text-white";
-  const selectedStyle = `outline-2 outline-offset-1 outline-double ${theme == "light" ? "bg-black text-white outline-black" : "bg-white text-black outline-white"}`;
+  const selectedStyle = `outline-2 outline-offset-1 outline-double ${theme == "light" ? "bg-black text-white outline-black ho hover:bg-black" : "bg-white text-black outline-white hover:bg-white"}`;
 
   return (
     <div className="min-h-screen bg-background">
@@ -271,23 +274,25 @@ export default function FinanceTracker() {
       <header className="sticky top-0 z-50 border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-primary to-primary/70 rounded-xl flex items-center justify-center shadow-lg">
+            <div className="w-5 sm:w-10 h-5 sm:h-10 bg-gradient-to-br from-primary to-primary/70 rounded-xl flex items-center justify-center shadow-lg shadow-foreground/20">
               <TrendingUp className="w-5 h-5 text-primary-foreground" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-foreground">Finance Tracker</h1>
-              <p className="text-xs text-muted-foreground">Manage your finances</p>
+              <h1 className="text:md sm:text-xl font-bold text-foreground">Finance Tracker</h1>
+              <p className="text-[11px] sm:text-xs text-muted-foreground">Manage your finances</p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-col-reverse sm:flex-row items-end sm:items-center gap-0 sm:gap-2">
             {/* Theme Toggle Button */}
             <ThemeToggle />
-            <div className="hidden sm:flex items-center gap-2">
+            <div className="flex items-center gap-2">
               <Button
                 // variant={viewMode === 'monthly' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => setViewMode('monthly')}
-                className={`cursor-pointer gap-2 border ${viewMode === 'monthly' ? selectedStyle : defaultStyle}`}
+                className={`cursor-pointer gap-2 border h-fit py-[2px] text-[12px] sm:text-sm sm:py-0 sm:h-8 
+                  ${viewMode === 'monthly' ? selectedStyle : defaultStyle}
+                `}
               >
                 <Calendar className="w-4 h-4" />
                 Monthly
@@ -295,13 +300,13 @@ export default function FinanceTracker() {
               <Button
                 size="sm"
                 onClick={() => setViewMode('yearly')}
-                className={`cursor-pointer gap-2 border 
+                className={`cursor-pointer gap-2 border h-fit py-[2px] text-[12px] sm:text-sm sm:py-0 sm:h-8 
                   ${viewMode === 'yearly' ? selectedStyle : defaultStyle}`}
               >
                 Yearly
               </Button>
             </div>
-            {/* Mobile View Toggle */}
+            {/* Mobile View Toggle
             <div className="sm:hidden">
               <Button
                 className='cursor-pointer'
@@ -311,7 +316,7 @@ export default function FinanceTracker() {
               >
                 {viewMode === 'monthly' ? 'Monthly' : 'Yearly'}
               </Button>
-            </div>
+            </div> */}
           </div>
         </div>
       </header>

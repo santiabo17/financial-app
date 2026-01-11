@@ -13,11 +13,9 @@ import {
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui-old/card'
 import { Plus, DollarSign, Minus, Edit2, Trash2 } from 'lucide-react'
 import { Category, DefaultCategoriesEnum } from '@/types/category'
-import { getCategories } from '@/services/category'
 import { CreateTransactionForm, Transaction, TransactionType, TYPE_ENUM, TYPE_TEXT_ENUM } from '@/types/transaction'
 import { useTheme } from 'next-themes'
 import { useToast } from '@/hooks/use-toast'
-import { ConfirmationModal } from './confirmation-modal'
 import { SelectItem } from './ui/select'
 
 interface TransactionFormProps {

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui-old/card'
 import { ViewMode } from '@/app/page'
 import { Button } from '@/components/ui-old/button'
@@ -9,12 +9,13 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip, BarChart, Ba
 import { cn } from '@/lib/utils'
 import { Category } from '@/types/category'
 import { Transaction, TYPE_ENUM } from '@/types/transaction'
-import { getCategories } from '@/services/category'
 import { ConfirmationModal } from './confirmation-modal'
 import { toast } from './ui/use-toast'
 import { Separator } from '@radix-ui/react-select'
+import { useIsMobile } from '@/hooks/use-mobile'
 
 interface VisualizationPanelProps {
+  categories: Category[]
   transactions: Transaction[]
   viewMode: ViewMode
   onDeleteTransaction: (id: number) => void
@@ -37,6 +38,7 @@ const Outcome_COLORS = [
 ]
 
 export function VisualizationPanel({
+  categories: allCategories,
   transactions,
   viewMode,
   onDeleteTransaction,
@@ -44,28 +46,28 @@ export function VisualizationPanel({
   selectedTransactionId,
   setSelectedTransactionId
 }: VisualizationPanelProps) {
-  const [allCategories, setAllCategories] = useState<Category[]>([]);
+  // const [allCategories, setAllCategories] = useState<Category[]>([]);
   const [deleteTransactionId, setDeleteTransactionId] = useState<number | null>(null);
   const [selectedDebtId, setSelectedDebtId] = useState<number | null>(null)
   const [deleteDebtModalOpen, setDeleteDebtModalOpen] = useState(false)
   const [deleteTransactionModalOpen, setDeleteTransactionModalOpen] = useState(false)
 
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const categoriesData = await getCategories();
-        setAllCategories(categoriesData);
-      } catch (error) {
-        toast({
-          title: "Error",
-          description: `Problem fetching categories.`,
-          variant: "default",
-        })
-        setAllCategories([]);
-      }
-    }
-    fetchCategories();
-  }, []);
+  // useEffect(() => {
+  //   const fetchCategories = async () => {
+  //     try {
+  //       const categoriesData = await getCategories();
+  //       setAllCategories(categoriesData);
+  //     } catch (error) {
+  //       toast({
+  //         title: "Error",
+  //         description: `Problem fetching categories.`,
+  //         variant: "default",
+  //       })
+  //       setAllCategories([]);
+  //     }
+  //   }
+  //   fetchCategories();
+  // }, []);
 
   const handleDeleteDebt = (id: number) => {
     setSelectedDebtId(id)
@@ -133,6 +135,10 @@ export function VisualizationPanel({
     const outcomesByCategory = Array.from(outcomeMap.entries())
       .map(([name, value]) => ({ name, value }))
       .sort((a, b) => b.value - a.value)
+      .map((cat) => {
+        const fullCategory = allCategories.find(category => category.name == cat.name );
+        return ({name: cat.name, value:cat.value, color: fullCategory?.color})
+      })
 
     // Monthly trend data for bar chart (only for yearly view)
     const monthlyData: { month: string; income: number; outcomes: number }[] = []
@@ -235,10 +241,12 @@ export function VisualizationPanel({
     }).format(amount)
   }
 
+  const isMobile = useIsMobile();
+
   return (
-    <div className="grid gap-6 lg:grid-cols-2">
+    <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
       {/* Outcomes by Category - Pie Chart */}
-      <Card className="lg:col-span-1 shadow-lg border-border/50">
+      <Card className={`lg:${viewMode == "yearly" ? 'col-span-1' : 'col-span-2'} shadow-lg border-border/50`}>
         <CardHeader>
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 bg-destructive/10 rounded-lg flex items-center justify-center">
@@ -260,16 +268,16 @@ export function VisualizationPanel({
                   cy="50%"
                   labelLine={false}
                   label={({ name, percent }) =>
-                    `${name} ${(percent * 100).toFixed(0)}%`
+                    isMobile ? null : `${name} ${(percent * 100).toFixed(0)}%`
                   }
-                  outerRadius={80}
+                  outerRadius={viewMode == "yearly" ? 80 : 110}
                   fill="#8884d8"
                   dataKey="value"
                 >
                   {outcomesByCategory.map((entry, index) => (
                     <Cell
                       key={`cell-${index}`}
-                      fill={Outcome_COLORS[index % Outcome_COLORS.length]}
+                      fill={entry.color}
                     />
                   ))}
                 </Pie>
@@ -290,8 +298,8 @@ export function VisualizationPanel({
         <Card className="lg:col-span-1 shadow-lg border-border/50">
           <CardHeader>
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
-                <BarChart3 className="w-4 h-4 text-primary" />
+              <div className="w-8 h-8 bg-foreground/10 rounded-lg flex items-center justify-center">
+              <BarChart3 className="w-4 h-4 text-foreground" />
               </div>
               <div>
                 <CardTitle>Monthly Trend</CardTitle>
@@ -320,8 +328,8 @@ export function VisualizationPanel({
         <Card className="lg:col-span-2 shadow-lg border-border/50">
           <CardHeader>
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
-                <TrendingUp className="w-4 h-4 text-primary" />
+              <div className="w-8 h-8 bg-foreground/10 rounded-lg flex items-center justify-center">
+                <TrendingUp className="w-4 h-4 text-foreground" />
               </div>
               <div>
                 <CardTitle>Category Evolution</CardTitle>
@@ -368,7 +376,7 @@ export function VisualizationPanel({
                     key={category.id}
                     type="monotone"
                     dataKey={category.id}
-                    stroke={Outcome_COLORS[index % Outcome_COLORS.length]}
+                    stroke={category.color}
                     strokeWidth={2}
                     dot={false}
                     name={category.name}
@@ -384,8 +392,8 @@ export function VisualizationPanel({
       <Card className="lg:col-span-2 shadow-lg border-border/50">
         <CardHeader>
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
-              <Receipt className="w-4 h-4 text-primary" />
+            <div className="w-8 h-8 bg-foreground/10 rounded-lg flex items-center justify-center">
+              <Receipt className="w-4 h-4 text-foreground" />
             </div>
             <div>
               <CardTitle>Recent Transactions</CardTitle>
@@ -397,29 +405,35 @@ export function VisualizationPanel({
           {filteredTransactions.length > 0 ? (
             <div className="space-y-2 max-h-[400px] overflow-y-auto pr-2">
               {filteredTransactions.slice(0, 20).map((transaction) => (
-              <div className='p-4 rounded-xl border-2 border-border/50 min-w-0'>  
+              <div key={transaction.id} className='p-4 rounded-xl border-1 border-border/50 min-w-0'>  
                 <div
                   key={transaction.id}
-                  className="flex items-center justify-between bg-muted/30 hover:bg-muted/50 transition-colors "
+                  className="flex flex-col-reverse gap-2 sm:gap-0 sm:flex-row items-center justify-between bg-muted/30 hover:bg-muted/50 transition-colors "
                 >
-                  <div className="flex-1 min-w-0 flex items-center gap-3">
+                  <div className="flex-1 min-w-0 flex w-full sm:w-fit items-center gap-3">
                     <div
                       className={cn(
-                        'w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0',
+                        'w-5 sm:w-10 h-5 sm:h-10 rounded-lg flex items-center justify-center flex-shrink-0',
                         transaction.type === !!TYPE_ENUM.INCOME ? 'bg-success/10' : 'bg-destructive/10'
                       )}
                     >
                       <div
-                        className={`w-2 h-2 rounded-full ${
+                        className={`w-1 sm:w-2 h-1 sm:h-2 rounded-full ${
                           transaction.type === !!TYPE_ENUM.INCOME ? 'bg-success' : 'bg-destructive'
                         }`}
                       />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-baseline gap-2">
-                        <span className="font-semibold text-foreground">
+                      <div className="flex items-center flex-row gap-2">
+                        <span className={`text-sm sm:text-lg font-semibold text-foreground`}>
                           {allCategories.find(cat => cat.id == transaction.category_id)?.name}
                         </span>
+                        {allCategories.find(cat => cat.id == transaction.category_id) && 
+                        <div
+                          className={`w-2 h-2 rounded-full bg-[${allCategories.find(cat => cat.id == transaction.category_id)?.color}]`}
+                          style={{backgroundColor: allCategories.find(cat => cat.id == transaction.category_id)?.color}}
+                        />
+                        }
                         <span className="text-xs text-muted-foreground">
                           {new Date(transaction.date).toLocaleDateString('en-US', {
                             month: 'short',
@@ -434,33 +448,35 @@ export function VisualizationPanel({
                       )}
                     </div>
                   </div>
-                  <div className="flex items-center gap-3">
+                  <div className="flex justify-between w-full sm:w-fit sm:justify-start items-center gap-2 sm:gap-3">
                     <span
-                      className={`font-bold text-base ${
+                      className={`font-bold ${
                         transaction.type === !!TYPE_ENUM.INCOME ? 'text-success' : 'text-destructive'
                       }`}
                     >
                       {transaction.type === !!TYPE_ENUM.INCOME ? '+' : '-'}
                       {formatCurrency(Number(transaction.amount) - transaction.debts?.reduce((acc, debt) => acc += debt.status ? Number(debt.amount) : 0, 0))}
                     </span>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleUpdateTransaction(transaction.id)}
-                      className="text-muted-foreground h-8 w-8 cursor-pointer"
-                    >
-                      <Edit2 className="w-4 h-4" />
-                      {/* <span className="sr-only">Delete transaction</span> */}
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleDeleteTransaction(transaction.id)}
-                      className="text-muted-foreground hover:text-destructive h-8 w-8 cursor-pointer"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                      {/* <span className="sr-only">Delete transaction</span> */}
-                    </Button>
+                    <div className='flex gap-2 sm:gap-3'>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleUpdateTransaction(transaction.id)}
+                        className="text-muted-foreground h-8 w-8 cursor-pointer"
+                      >
+                        <Edit2 className="w-4 h-4" />
+                        {/* <span className="sr-only">Delete transaction</span> */}
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleDeleteTransaction(transaction.id)}
+                        className="text-muted-foreground hover:text-destructive h-8 w-8 cursor-pointer"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                        {/* <span className="sr-only">Delete transaction</span> */}
+                      </Button>
+                    </div>
                   </div>
                 </div>
                 {transaction.debts?.length > 0 &&
@@ -472,7 +488,7 @@ export function VisualizationPanel({
                 <div >
                   <h4 className="font-semibold text-foreground mb-1">Debts</h4>
                   <div className='flex flex-col gap-3'>
-                    {transaction.debts?.map(debt => <div className={`border ${debt.status ? 'border-success text-success bg-success/5' : 'border-destructive text-destructive bg-destructive/5'} border-border/50 rounded-lg p-2 flex justify-between items-center`}>
+                    {transaction.debts?.map(debt => <div key={debt.id} className={`border ${debt.status ? 'border-success text-success bg-success/5' : 'border-destructive text-destructive bg-destructive/5'} border-border/50 rounded-lg p-2 flex justify-between items-center`}>
                       <h5 className={`text-sm w-full p-1 rounded-md`}>{debt.person} - {formatCurrency(Number(debt.amount))}{debt?.description ? ` - ${debt.description}` : ''}</h5>
                       <div className='flex items-center gap-2'>
                         <h5 className={`text-sm h-fit !mb-0`}>
