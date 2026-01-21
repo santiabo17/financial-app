@@ -29,7 +29,7 @@ CREATE TABLE debts (
     description TEXT,
     date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     status BOOLEAN NOT NULL
-)
+);
 
 -- Index on date
 CREATE INDEX idx_transaction_date ON transactions(date);
