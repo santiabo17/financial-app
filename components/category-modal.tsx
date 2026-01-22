@@ -3,7 +3,6 @@
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -14,14 +13,14 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui-old/select'
+} from '@/components/ui/select'
 import { Button } from "@/components/ui/button"
 import { AlertTriangle } from "lucide-react"
 import { useTheme } from "next-themes"
-import { Input } from "./ui-old/input"
+import { Input } from "./ui/input"
 import { useState } from "react"
 import { TYPE_ENUM, TYPE_TEXT_ENUM } from "@/types/transaction"
-import { Label } from "./ui-old/label"
+import { Label } from "./ui/label"
 import { HexColorPicker } from "react-colorful";
 import { Category, CreateCategoryForm } from "@/types/category"
 import { addCategory } from "@/services/category"

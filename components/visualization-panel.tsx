@@ -1,9 +1,9 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui-old/card'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { ViewMode } from '@/app/page'
-import { Button } from '@/components/ui-old/button'
+import { Button } from '@/components/ui/button'
 import { Trash2, PieChartIcon, BarChart3, Receipt, TrendingUp, Edit2 } from 'lucide-react'
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid, LineChart, Line } from 'recharts'
 import { cn } from '@/lib/utils'

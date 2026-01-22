@@ -13,11 +13,10 @@ import { useToast } from "@/hooks/use-toast"
 import { HandCoins, Plus, Check, Trash2, ArrowDownRight, ArrowUpRight } from "lucide-react"
 import { ConfirmationModal } from "./confirmation-modal"
 import { useTheme } from "next-themes"
-import { Transaction, TYPE_ENUM, TYPE_TEXT_ENUM } from "@/types/transaction"
+import { Transaction, TYPE_ENUM } from "@/types/transaction"
 import { CreateDebtForm, Debt, DEBT_STATUS_ENUM } from "@/types/debt"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Category, DefaultCategoriesEnum } from "@/types/category"
-import { getCategories } from "@/services/category"
 import { formatDate } from "@/lib/date"
 
 interface DebtManagerProps {

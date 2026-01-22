@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { ThemeToggle } from '@/components/theme-toggle'
-import { Button } from '@/components/ui-old/button'
+import { Button } from '@/components/ui/button'
 import { Calendar, HandCoins, TrendingUp } from 'lucide-react'
 import { addTransaction, deleteTransaction, getTransactions, updateTransaction } from '@/services/transaction'
 import { Transaction, CreateTransactionForm, TYPE_ENUM } from '@/types/transaction'

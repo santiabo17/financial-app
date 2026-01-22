@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo } from 'react'
-import { Card, CardContent } from '@/components/ui-old/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { ViewMode } from '@/app/page'
 import { TrendingUp, TrendingDown, DollarSign, Percent, ArrowUpRight, ArrowDownRight } from 'lucide-react'
 import { cn } from '@/lib/utils'

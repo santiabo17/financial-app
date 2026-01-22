@@ -1,22 +1,22 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import { Button } from '@/components/ui-old/button'
-import { Input } from '@/components/ui-old/input'
-import { Label } from '@/components/ui-old/label'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import {
   Select,
   SelectContent,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui-old/select'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui-old/card'
+  SelectItem
+} from '@/components/ui/select'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Plus, DollarSign, Minus, Edit2, Trash2 } from 'lucide-react'
 import { Category, DefaultCategoriesEnum } from '@/types/category'
 import { CreateTransactionForm, Transaction, TransactionType, TYPE_ENUM, TYPE_TEXT_ENUM } from '@/types/transaction'
 import { useTheme } from 'next-themes'
 import { useToast } from '@/hooks/use-toast'
-import { SelectItem } from './ui/select'
 
 interface TransactionFormProps {
   onSubmit: (transaction: CreateTransactionForm) => void
