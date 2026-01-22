@@ -10,11 +10,6 @@ export enum TYPE_TEXT_ENUM {
   OUTCOME = "outcome"
 }
 
-// export const  TypesData = {
-//     [TYPE_ENUM.INCOME]: false,
-//     [TYPE_ENUM.OUTCOME]: true
-// }
-
 export interface Transaction {
   id: number
   type: boolean

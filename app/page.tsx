@@ -5,8 +5,7 @@ import { ThemeToggle } from '@/components/theme-toggle'
 import { Button } from '@/components/ui/button'
 import { Calendar, HandCoins, TrendingUp } from 'lucide-react'
 import { addTransaction, deleteTransaction, getTransactions, updateTransaction } from '@/services/transaction'
-import { Transaction, CreateTransactionForm, TYPE_ENUM } from '@/types/transaction'
-import { useTheme } from 'next-themes'
+import { Transaction, CreateTransactionForm } from '@/types/transaction'
 import { CreateDebtForm, Debt, DEBT_STATUS_ENUM } from '@/types/debt'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { DebtManager } from '@/components/debt-manager'
@@ -23,8 +22,6 @@ import { ConfirmationModal } from '@/components/confirmation-modal'
 export type ViewMode = 'monthly' | 'yearly'
 
 export default function FinanceTracker() {
-  const { theme } = useTheme();
-
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [debts, setDebts] = useState<Debt[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -200,8 +197,6 @@ export default function FinanceTracker() {
       const debt = debts.find((d) => d.id === id)
       if (!debt) return
   
-      // Mark debt as settled
-      console.log("paid debt: ", debt);
       await paidDebt(id);
       setDebts((prev) => prev.map((d) => (d.id === id ? { ...d, status: true } : d)))
   
@@ -220,9 +215,7 @@ export default function FinanceTracker() {
           description: `Debt paid: ${debt.person}${debt.description ? ` - ${debt.description}` : ""}`,
           date: new Date().toISOString().split("T")[0],
         }
-        console.log("newTransaction: ", newTransaction);
         const newTransactionResult = await addTransaction(newTransaction);
-        console.log("newTransactionResult: ", newTransactionResult, transactions);
         setTransactions((prev) => [{...newTransactionResult, debts: []}, ...prev]);
       }
       toast({
@@ -265,12 +258,11 @@ export default function FinanceTracker() {
     }
   }
 
-  const defaultStyle = theme == "light" ? "bg-white text-black" : "bg-black text-white";
-  const selectedStyle = `outline-2 outline-offset-1 outline-double ${theme == "light" ? "bg-black text-white outline-black ho hover:bg-black" : "bg-white text-black outline-white hover:bg-white"}`;
+  const defaultStyle = "cursor-pointer bg-background text-foreground hover:bg-foreground/40 hover:text-background";
+  const selectedStyle = `outline-2 outline-offset-1 outline-double bg-foreground text-background outline-foreground hover:bg-foreground hover:text-background`;
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
       <header className="sticky top-0 z-50 border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -283,14 +275,12 @@ export default function FinanceTracker() {
             </div>
           </div>
           <div className="flex flex-col-reverse sm:flex-row items-end sm:items-center gap-0 sm:gap-2">
-            {/* Theme Toggle Button */}
             <ThemeToggle />
             <div className="flex items-center gap-2">
               <Button
-                // variant={viewMode === 'monthly' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => setViewMode('monthly')}
-                className={`cursor-pointer gap-2 border h-fit py-[2px] text-[12px] sm:text-sm sm:py-0 sm:h-8 
+                className={`gap-2 border h-fit py-[2px] text-[12px] sm:text-sm sm:py-0 sm:h-8 
                   ${viewMode === 'monthly' ? selectedStyle : defaultStyle}
                 `}
               >
@@ -306,36 +296,24 @@ export default function FinanceTracker() {
                 Yearly
               </Button>
             </div>
-            {/* Mobile View Toggle
-            <div className="sm:hidden">
-              <Button
-                className='cursor-pointer'
-                variant="outline"
-                size="sm"
-                onClick={() => setViewMode(viewMode === 'monthly' ? 'yearly' : 'monthly')}
-              >
-                {viewMode === 'monthly' ? 'Monthly' : 'Yearly'}
-              </Button>
-            </div> */}
           </div>
         </div>
       </header>
 
-      {/* Main Layout */}
       <div className="container mx-auto px-4 pt-6 pb-0">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="grid w-full max-w-md mx-auto grid-cols-2">
-            <TabsTrigger value="transactions" className={`gap-2 cursor-pointer transition-all ${activeTab == "transactions" ? 'underline underline-offset-5' : ''}`}>
+            <TabsTrigger value="transactions" className={`gap-2 cursor-pointer hover:underline transition-all duration-300 ${activeTab == "transactions" ? 'underline underline-offset-5' : ''}`}>
               <TrendingUp className="w-4 h-4" />
               Transactions
             </TabsTrigger>
-            <TabsTrigger value="debts" className={`gap-2 cursor-pointer transition-all ${activeTab != "transactions" ? 'underline underline-offset-5' : ''}`}>
+            <TabsTrigger value="debts" className={`gap-2 cursor-pointer hover:underline transition-all duration-300 ${activeTab != "transactions" ? 'underline underline-offset-5' : ''}`}>
               <HandCoins className="w-4 h-4" />
               Debts
             </TabsTrigger>
           </TabsList>
           <TabsContent value="transactions">
-          <TransactionManager transactions={transactions} categories={categories} onAddTransaction={handleAddTransaction} onUpdateTransaction={handleUpdateTransaction} onDeleteCategory={(id) => {setSelectedCategoryId(id); setShowDeleteCategoryModal(true);}} onDeleteTransaction={handleDeleteTransaction} onDeleteDebt={handleDeleteDebt} onOpenCategoryModal={() => setShowCategoryModal(true)} viewMode={viewMode}/>
+            <TransactionManager transactions={transactions} categories={categories} onAddTransaction={handleAddTransaction} onUpdateTransaction={handleUpdateTransaction} onDeleteCategory={(id) => {setSelectedCategoryId(id); setShowDeleteCategoryModal(true);}} onDeleteTransaction={handleDeleteTransaction} onDeleteDebt={handleDeleteDebt} onOpenCategoryModal={() => setShowCategoryModal(true)} viewMode={viewMode}/>
           </TabsContent>
           <TabsContent value="debts">
             <DebtManager

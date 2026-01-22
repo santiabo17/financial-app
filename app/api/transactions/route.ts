@@ -1,4 +1,3 @@
-// app/api/products/route.ts (Example API Route)
 import { NextResponse } from 'next/server';
 import pool from '@/lib/db';
 import { CreateTransactionForm } from '@/types/transaction';
@@ -26,7 +25,6 @@ export async function GET(request: Request) {
     const result = await pool.query(query, values);
 
     const transactions = result.rows.reduce((acc, row) => {
-      // Find if transaction already exists in our accumulator
       let transaction = acc.find((t: any) => t.id === row.id);
       
       if (!transaction) {
@@ -44,8 +42,6 @@ export async function GET(request: Request) {
       
       return acc;
     }, []);
-
-    console.log("transactions: ", transactions);
     
     return NextResponse.json(transactions);
   } catch (error) {
@@ -56,8 +52,7 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   const { type, amount, category_id, description, date } = await request.json() as CreateTransactionForm;
-  console.log("type", type, "category_id", category_id);
-  const client = await pool.connect(); // Get a dedicated client from the pool
+  const client = await pool.connect();
 
   try {
     await client.query('BEGIN');
@@ -84,8 +79,7 @@ export async function PUT(request: Request) {
   const { searchParams } = new URL(request.url);
   const transactionId = searchParams.get('id');
   const { type, amount, category_id, description, date } = await request.json() as CreateTransactionForm;
-  console.log("type", type, "category_id", category_id);
-  const client = await pool.connect(); // Get a dedicated client from the pool
+  const client = await pool.connect();
 
   try {
     await client.query('BEGIN');

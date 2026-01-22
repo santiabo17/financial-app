@@ -1,7 +1,5 @@
-// app/api/products/route.ts (Example API Route)
 import { NextResponse } from 'next/server';
 import pool from '@/lib/db';
-import { CreateTransactionForm } from '@/types/transaction';
 import { CreateDebtForm } from '@/types/debt';
 
 export async function GET(request: Request) {
@@ -34,7 +32,7 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   const { type, amount, category_id, transaction_id, person, description, date, status } = await request.json() as CreateDebtForm;
-  const client = await pool.connect(); // Get a dedicated client from the pool
+  const client = await pool.connect();
 
   try {
     await client.query('BEGIN');
@@ -63,7 +61,7 @@ export async function PUT(request: Request) {
   if(!debtId){
     return NextResponse.json({ message: "Debt id is mandatory." }, { status: 500 });
   }
-  const client = await pool.connect(); // Get a dedicated client from the pool
+  const client = await pool.connect();
 
   try {
     await client.query('BEGIN');

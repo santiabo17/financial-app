@@ -125,7 +125,7 @@ export function CategoryModal({
           <Button variant="outline" onClick={() => onOpenChange(false)} className="cursor-pointer">
             Cancel
           </Button>
-          <Button className={`${theme == "light" ? "bg-black text-white" : "bg-white text-black"} cursor-pointer`} onClick={handleAddCategory} disabled={!color || !name || type == undefined}>
+          <Button className={`transition duration-300 border bg-background text-foreground hover:bg-foreground hover:text-background cursor-pointer`} onClick={handleAddCategory} disabled={!color || !name || type == undefined}>
             Create
           </Button>
         </DialogFooter>

@@ -1,9 +1,7 @@
 "use client"
 
-import type React from "react"
-
 import { useMemo, useState } from "react"
-import { CreateTransactionForm, Transaction, TYPE_ENUM, TYPE_TEXT_ENUM } from "@/types/transaction"
+import { CreateTransactionForm, Transaction } from "@/types/transaction"
 import { Category } from "@/types/category"
 import { TransactionForm } from "./transaction-form"
 import { SummaryMetrics } from "./summary-metrics"

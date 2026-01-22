@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import pool from '@/lib/db';
-import { TYPE_ENUM, TYPE_TEXT_ENUM } from '@/types/transaction';
-// import { CATEGORY_ENUM } from '@/types/category';
+import { TYPE_TEXT_ENUM } from '@/types/transaction';
 
 export async function GET(request: Request) {
   try {
@@ -50,7 +49,7 @@ export async function PUT(request: Request) {
   const client = await pool.connect();
 
   try {
-    await client.query('BEGIN'); // Start the transaction
+    await client.query('BEGIN');
 
     const updateQuery = 'UPDATE categories SET name = $1, type = $2, color = $3 WHERE id = $4';
     const updateResult = await client.query(updateQuery, [name, type, color, categoryId]);

@@ -24,50 +24,18 @@ interface VisualizationPanelProps {
   setSelectedTransactionId: (data: number | null) => void
 }
 
-const Outcome_COLORS = [
-  '#ef4444', // red
-  '#f97316', // orange
-  '#f59e0b', // amber
-  '#eab308', // yellow
-  '#84cc16', // lime
-  '#22c55e', // green
-  '#14b8a6', // teal
-  '#06b6d4', // cyan
-  '#3b82f6', // blue
-  '#8b5cf6', // violet
-]
-
 export function VisualizationPanel({
   categories: allCategories,
   transactions,
   viewMode,
   onDeleteTransaction,
   onDeleteDebt,
-  selectedTransactionId,
   setSelectedTransactionId
 }: VisualizationPanelProps) {
-  // const [allCategories, setAllCategories] = useState<Category[]>([]);
   const [deleteTransactionId, setDeleteTransactionId] = useState<number | null>(null);
   const [selectedDebtId, setSelectedDebtId] = useState<number | null>(null)
   const [deleteDebtModalOpen, setDeleteDebtModalOpen] = useState(false)
   const [deleteTransactionModalOpen, setDeleteTransactionModalOpen] = useState(false)
-
-  // useEffect(() => {
-  //   const fetchCategories = async () => {
-  //     try {
-  //       const categoriesData = await getCategories();
-  //       setAllCategories(categoriesData);
-  //     } catch (error) {
-  //       toast({
-  //         title: "Error",
-  //         description: `Problem fetching categories.`,
-  //         variant: "default",
-  //       })
-  //       setAllCategories([]);
-  //     }
-  //   }
-  //   fetchCategories();
-  // }, []);
 
   const handleDeleteDebt = (id: number) => {
     setSelectedDebtId(id)
@@ -123,7 +91,6 @@ export function VisualizationPanel({
       }
     })
 
-    // Outcomes by category for pie chart
     const outcomeMap = new Map<string, number>()
     filtered
       .filter((t) => t.type === !!TYPE_ENUM.OUTCOME)
@@ -140,7 +107,6 @@ export function VisualizationPanel({
         return ({name: cat.name, value:cat.value, color: fullCategory?.color})
       })
 
-    // Monthly trend data for bar chart (only for yearly view)
     const monthlyData: { month: string; income: number; outcomes: number }[] = []
     if (viewMode === 'yearly') {
       const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
@@ -162,16 +128,13 @@ export function VisualizationPanel({
     const categoryEvolutionData: any[] = []
     
     if (viewMode === 'monthly') {
-      // For monthly view, show day-by-day evolution
       const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate()
       
       for (let day = 1; day <= daysInMonth; day++) {
         const dataPoint: any = { period: day.toString() }
         
-        // Get all categories
         const categories = new Set(filtered.filter(t => t.type === !!TYPE_ENUM.OUTCOME).map(t => allCategories.find(category => category.id == t.category_id)).filter(category => !!category));
         
-        // For each category, sum up outcomes up to this day (cumulative)
         categories.forEach(category => {
           const categoryTotal = filtered
             .filter(t => 
@@ -186,13 +149,11 @@ export function VisualizationPanel({
         categoryEvolutionData.push(dataPoint)
       }
     } else {
-      // For yearly view, show month-by-month evolution
       const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
       
       for (let month = 0; month < 12; month++) {
         const dataPoint: any = { period: months[month] }
         
-        // Get all categories from the year
         const categories = new Set(
           transactions
             .filter(t => t.type === !!TYPE_ENUM.OUTCOME && new Date(t.date).getFullYear() === currentYear)
@@ -200,7 +161,6 @@ export function VisualizationPanel({
             .filter(category => !!category)
         )
         
-        // For each category, sum up outcomes up to this month (cumulative)
         categories.forEach(category => {
           const categoryTotal = transactions
             .filter(t => {
@@ -245,7 +205,6 @@ export function VisualizationPanel({
 
   return (
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-      {/* Outcomes by Category - Pie Chart */}
       <Card className={`lg:${viewMode == "yearly" ? 'col-span-1' : 'col-span-2'} shadow-lg border-border/50`}>
         <CardHeader>
           <div className="flex items-center gap-2">
@@ -293,7 +252,6 @@ export function VisualizationPanel({
         </CardContent>
       </Card>
 
-      {/* Monthly Trend - Bar Chart (Yearly View Only) */}
       {viewMode === 'yearly' && (
         <Card className="lg:col-span-1 shadow-lg border-border/50">
           <CardHeader>
@@ -323,7 +281,6 @@ export function VisualizationPanel({
         </Card>
       )}
 
-      {/* Category Evolution Chart - Line Chart */}
       {categories.length > 0 && (
         <Card className="lg:col-span-2 shadow-lg border-border/50">
           <CardHeader>
@@ -388,7 +345,6 @@ export function VisualizationPanel({
         </Card>
       )}
 
-      {/* Recent Transactions */}
       <Card className="lg:col-span-2 shadow-lg border-border/50">
         <CardHeader>
           <div className="flex items-center gap-2">
@@ -465,7 +421,6 @@ export function VisualizationPanel({
                         className="text-muted-foreground h-8 w-8 cursor-pointer"
                       >
                         <Edit2 className="w-4 h-4" />
-                        {/* <span className="sr-only">Delete transaction</span> */}
                       </Button>
                       <Button
                         variant="ghost"
@@ -474,7 +429,6 @@ export function VisualizationPanel({
                         className="text-muted-foreground hover:text-destructive h-8 w-8 cursor-pointer"
                       >
                         <Trash2 className="w-4 h-4" />
-                        {/* <span className="sr-only">Delete transaction</span> */}
                       </Button>
                     </div>
                   </div>

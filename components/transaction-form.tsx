@@ -75,150 +75,147 @@ export function TransactionForm({ onSubmit, onDeleteTransaction, onDeleteCategor
     return categories.filter(category => category.type == type);
   }, [categories, categoryId, type]); 
 
-  const defaultStyle = theme == "light" ? "bg-white text-black" : "bg-black text-white";
-  const selectedStyle = `outline-2 outline-offset-1 outline-double ${theme == "light" ? "bg-black text-white outline-black hover:bg-black" : "bg-white text-black outline-white hover:bg-white"}`;
+  const defaultStyle = "cursor-pointer bg-background text-foreground hover:bg-foreground/40 hover:text-background";
+  const selectedStyle = `outline-2 outline-offset-1 outline-double bg-foreground text-background outline-foreground hover:bg-foreground hover:text-background`;
 
   const completedMandatoryData = useMemo(() => {
     return !!amount && !!categoryId && !!date;
   }, [amount, categoryId, date]);
 
   return (
-    <div>
-
-      <Card className="shadow-lg border-border/50 pt-4">
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-xl flex items-center gap-2">
-            <div className="w-8 h-8 bg-foreground/10 rounded-lg flex items-center justify-center">
-              <DollarSign className="w-4 h-4 text-foreground" />
-            </div>
-            Add Transaction
-          </CardTitle>
-          <CardDescription>Log your income or outcomes</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Transaction Type Toggle */}
-            <div className="space-y-2">
-              <Label className="text-sm font-medium">Transaction Type</Label>
-              <div className="grid grid-cols-2 gap-2">
-                <Button
-                  type="button"
-                  onClick={() => {
-                    setType(!!TYPE_ENUM.INCOME)
-                    setCategoryId(undefined)
-                  }}
-                  className={`cursor-pointer gap-2 border 
-                    ${type === !!TYPE_ENUM.INCOME ? selectedStyle : defaultStyle}
-                    `}
-                >
-                  Income
-                </Button>
-                <Button
-                  type="button"
-                  onClick={() => {
-                    setType(!!TYPE_ENUM.OUTCOME)
-                    setCategoryId(undefined)
-                  }}
-                  className={`cursor-pointer gap-2 border 
-                    ${type === !!TYPE_ENUM.OUTCOME ? selectedStyle : defaultStyle}
-                    `}
-                >
-                  Outcome
-                </Button>
-              </div>
-            </div>
-
-            {/* Amount */}
-            <div className="space-y-2">
-              <Label htmlFor="amount" className="text-sm font-medium">Amount *</Label>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">
-                  $
-                </span>
-                <Input
-                  id="amount"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  placeholder="0.00"
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                  className="pl-7 h-11"
-                  required
-                />
-              </div>
-            </div>
-
-            {/* CategoryId */}
-            <div className="space-y-2">
-              <div className="flex justify-between">
-                <Label htmlFor="category" className="text-sm font-medium">Category *</Label>
-                <Button type="button" size={"sm"} className="cursor-pointer px-2 py-[3px] h-fit text-[12px] border text-background bg-foreground hover:bg-background hover:text-foreground" onClick={() => onOpenCategoryModal()}>Add +</Button>
-              </div>
-              <Select value={(categoryId ? categoryId?.toString() : null) as any} 
-              onValueChange={(value) => value && setCategoryId(Number(value))} 
-              required>
-                <SelectTrigger id="category" className="!h-11 w-full">
-                  <SelectValue placeholder="Select category" />
-                </SelectTrigger>
-                <SelectContent className={theme == "dark" ? "bg-black text-white" : "bg-white text-black"}>
-                  {categoriesOptions.map((cat) => (
-                    <SelectItem key={cat.id} value={cat.id.toString()} deleteFunc={!Object.values(DefaultCategoriesEnum).includes(cat.id) ? () => onDeleteCategory(cat.id) : undefined}>
-                       <div className="flex items-center gap-2 !w-full !h-8">
-                          {cat.name}
-                        </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Description */}
-            <div className="space-y-2">
-              <Label htmlFor="description" className="text-sm font-medium">Description</Label>
-              <Input
-                id="description"
-                type="text"
-                placeholder="Brief note..."
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                className="h-11"
-              />
-            </div>
-
-            {/* Date */}
-            <div className="space-y-2">
-              <Label htmlFor="date" className="text-sm font-medium">Date *</Label>
-              <Input
-                id="date"
-                type="date"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-                className="h-11"
-              />
-            </div>
-
-            {
-              transaction ? 
-              <div className='flex'>
-                <Button type="button" className={`flex-1 gap-2 h-11 rounded-r-none shadow-sm cursor-pointer ${theme == "light" ? "bg-white text-black border border-black" : "bg-black text-white border border-white"}`} onClick={() => onCleanTransaction()}>
-                  <Minus className="w-4 h-4" />
-                  Cancel
-                </Button>
-                <Button type="submit" className={`flex-1 gap-2 h-11 rounded-l-none shadow-sm cursor-pointer ${theme == "light" ? "bg-black text-white hover:bg-black" : "bg-white text-black hover:bg-white"}`} disabled={!completedMandatoryData}>
-                  <Edit2 className="w-4 h-4" />
-                  Update
-                </Button>
-              </div>
-              :
-              <Button type="submit" className={`w-full gap-2 h-11 shadow-sm cursor-pointer ${theme == "light" ? "bg-black text-white" : "bg-white text-black"}`} disabled={!completedMandatoryData}>
-                <Plus className="w-4 h-4" />
-                Log Transaction
+    <Card className="shadow-lg border-border/50 pt-4">
+      <CardHeader className="space-y-1">
+        <CardTitle className="text-xl flex items-center gap-2">
+          <div className="w-8 h-8 bg-foreground/10 rounded-lg flex items-center justify-center">
+            <DollarSign className="w-4 h-4 text-foreground" />
+          </div>
+          Add Transaction
+        </CardTitle>
+        <CardDescription>Log your income or outcomes</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Transaction Type Toggle */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Transaction Type</Label>
+            <div className="grid grid-cols-2 gap-2">
+              <Button
+                type="button"
+                onClick={() => {
+                  setType(!!TYPE_ENUM.INCOME)
+                  setCategoryId(undefined)
+                }}
+                className={`gap-2 border transition duration-300
+                  ${type === !!TYPE_ENUM.INCOME ? selectedStyle : defaultStyle}
+                  `}
+              >
+                Income
               </Button>
-            }
-          </form>
-        </CardContent>
-      </Card>
-    </div>
+              <Button
+                type="button"
+                onClick={() => {
+                  setType(!!TYPE_ENUM.OUTCOME)
+                  setCategoryId(undefined)
+                }}
+                className={`gap-2 border transition duration-300 
+                  ${type === !!TYPE_ENUM.OUTCOME ? selectedStyle : defaultStyle}
+                  `}
+              >
+                Outcome
+              </Button>
+            </div>
+          </div>
+
+          {/* Amount */}
+          <div className="space-y-2">
+            <Label htmlFor="amount" className="text-sm font-medium">Amount *</Label>
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">
+                $
+              </span>
+              <Input
+                id="amount"
+                type="number"
+                step="0.01"
+                min="0"
+                placeholder="0.00"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                className="pl-7 h-11"
+                required
+              />
+            </div>
+          </div>
+
+          {/* CategoryId */}
+          <div className="space-y-2">
+            <div className="flex justify-between">
+              <Label htmlFor="category" className="text-sm font-medium">Category *</Label>
+              <Button type="button" size={"sm"} className="cursor-pointer px-2 py-[3px] h-fit text-[12px] border text-background transition duration-300 text-foreground bg-background hover:bg-foreground hover:text-background" onClick={() => onOpenCategoryModal()}>Add +</Button>
+            </div>
+            <Select value={(categoryId ? categoryId?.toString() : null) as any} 
+            onValueChange={(value) => value && setCategoryId(Number(value))} 
+            required>
+              <SelectTrigger id="category" className="!h-11 w-full">
+                <SelectValue placeholder="Select category" />
+              </SelectTrigger>
+              <SelectContent className={theme == "dark" ? "bg-black text-white" : "bg-white text-black"}>
+                {categoriesOptions.map((cat) => (
+                  <SelectItem key={cat.id} value={cat.id.toString()} deleteFunc={!Object.values(DefaultCategoriesEnum).includes(cat.id) ? () => onDeleteCategory(cat.id) : undefined}>
+                      <div className="flex items-center gap-2 !w-full !h-8">
+                        {cat.name}
+                      </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Description */}
+          <div className="space-y-2">
+            <Label htmlFor="description" className="text-sm font-medium">Description</Label>
+            <Input
+              id="description"
+              type="text"
+              placeholder="Brief note..."
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              className="h-11"
+            />
+          </div>
+
+          {/* Date */}
+          <div className="space-y-2">
+            <Label htmlFor="date" className="text-sm font-medium">Date *</Label>
+            <Input
+              id="date"
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              className="h-11"
+            />
+          </div>
+
+          {
+            transaction ? 
+            <div className='flex'>
+              <Button type="button" className={`flex-1 gap-2 h-11 rounded-r-none shadow-sm cursor-pointer ${theme == "light" ? "bg-white text-black border border-black" : "bg-black text-white border border-white"}`} onClick={() => onCleanTransaction()}>
+                <Minus className="w-4 h-4" />
+                Cancel
+              </Button>
+              <Button type="submit" className={`flex-1 gap-2 h-11 rounded-l-none shadow-sm cursor-pointer ${theme == "light" ? "bg-black text-white hover:bg-black" : "bg-white text-black hover:bg-white"}`} disabled={!completedMandatoryData}>
+                <Edit2 className="w-4 h-4" />
+                Update
+              </Button>
+            </div>
+            :
+            <Button type="submit" className={`w-full gap-2 h-11 shadow-sm cursor-pointer transition duration-300 bg-foreground text-background hover:bg-foreground/10 hover:text-foreground border-0 hover:border-1 border-foreground`} disabled={!completedMandatoryData}>
+              <Plus className="w-4 h-4" />
+              Log Transaction
+            </Button>
+          }
+        </form>
+      </CardContent>
+    </Card>
   )
 }
