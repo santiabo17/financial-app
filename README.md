@@ -30,7 +30,9 @@ cd financial-app
 ```
 
 ### 2. Create your secret environment file from the template
+```bash
 cp .env.example .env
+```
 
 ### 3. Launch the App
 ```bash
