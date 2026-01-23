@@ -264,7 +264,7 @@ export default function FinanceTracker() {
   return (
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-50 border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+        <div className="container mx-auto px-4 py-4 flex items-start sm:items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-5 sm:w-10 h-5 sm:h-10 bg-gradient-to-br from-primary to-primary/70 rounded-xl flex items-center justify-center shadow-lg shadow-foreground/20">
               <TrendingUp className="w-5 h-5 text-primary-foreground" />
@@ -274,7 +274,7 @@ export default function FinanceTracker() {
               <p className="text-[11px] sm:text-xs text-muted-foreground">Manage your finances</p>
             </div>
           </div>
-          <div className="flex flex-col-reverse sm:flex-row items-end sm:items-center gap-0 sm:gap-2">
+          <div className="flex flex-col-reverse sm:flex-row items-end sm:items-center gap-2">
             <ThemeToggle />
             <div className="flex items-center gap-2">
               <Button
@@ -313,7 +313,17 @@ export default function FinanceTracker() {
             </TabsTrigger>
           </TabsList>
           <TabsContent value="transactions">
-            <TransactionManager transactions={transactions} categories={categories} onAddTransaction={handleAddTransaction} onUpdateTransaction={handleUpdateTransaction} onDeleteCategory={(id) => {setSelectedCategoryId(id); setShowDeleteCategoryModal(true);}} onDeleteTransaction={handleDeleteTransaction} onDeleteDebt={handleDeleteDebt} onOpenCategoryModal={() => setShowCategoryModal(true)} viewMode={viewMode}/>
+            <TransactionManager 
+              transactions={transactions} 
+              categories={categories} 
+              onAddTransaction={handleAddTransaction} 
+              onUpdateTransaction={handleUpdateTransaction} 
+              onDeleteCategory={(id) => {setSelectedCategoryId(id); setShowDeleteCategoryModal(true);}} 
+              onDeleteTransaction={handleDeleteTransaction} 
+              onDeleteDebt={handleDeleteDebt} 
+              onOpenCategoryModal={() => setShowCategoryModal(true)} 
+              viewMode={viewMode}
+            />
           </TabsContent>
           <TabsContent value="debts">
             <DebtManager

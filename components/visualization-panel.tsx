@@ -404,6 +404,7 @@ export function VisualizationPanel({
                       )}
                     </div>
                   </div>
+                  <div className="w-full h-[.6px] bg-foreground/60 block sm:hidden"></div>
                   <div className="flex justify-between w-full sm:w-fit sm:justify-start items-center gap-2 sm:gap-3">
                     <span
                       className={`font-bold ${

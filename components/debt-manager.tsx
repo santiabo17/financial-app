@@ -207,8 +207,6 @@ export function DebtManager({ debts, transactions, categories, onAddDebt, onSett
           </CardContent>
         </Card>
       </div>
-
-      {/* Settle Confirmation Modal */}
       <ConfirmationModal
         open={settleModalOpen}
         onOpenChange={setSettleModalOpen}
@@ -225,8 +223,6 @@ export function DebtManager({ debts, transactions, categories, onAddDebt, onSett
         variant="default"
         onConfirm={confirmSettle}
       />
-
-      {/* Delete Confirmation Modal */}
       <ConfirmationModal
         open={deleteModalOpen}
         onOpenChange={setDeleteModalOpen}

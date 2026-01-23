@@ -194,7 +194,6 @@ export function DebtForm({ onAddDebt, onOpenCategoryModal, onDeleteCategory, cat
                 </div>
               }
 
-              {/* Description */}
               <div className="space-y-2">
                 <Label htmlFor="debt-description" className="text-sm font-medium">
                   Description
@@ -209,7 +208,6 @@ export function DebtForm({ onAddDebt, onOpenCategoryModal, onDeleteCategory, cat
                 />
               </div>
 
-              {/* Date */}
               <div className="space-y-2">
                 <Label htmlFor="debt-date" className="text-sm font-medium">
                   Date Registered *
@@ -223,7 +221,6 @@ export function DebtForm({ onAddDebt, onOpenCategoryModal, onDeleteCategory, cat
                 />
               </div>
 
-              {/* Submit Button */}
               <Button type="submit" disabled={!completedMandatoryData || excededDebtAmount} className={`w-full gap-2 h-11 shadow-sm cursor-pointer transition duration-300 bg-foreground text-background hover:bg-foreground/10 hover:text-foreground border-0 hover:border-1 border-foreground`}>
                 <Plus className="w-4 h-4" />
                 Register Debt

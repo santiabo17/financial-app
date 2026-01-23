@@ -12,11 +12,10 @@ import {
   SelectItem
 } from '@/components/ui/select'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { Plus, DollarSign, Minus, Edit2, Trash2 } from 'lucide-react'
+import { Plus, DollarSign, Minus, Edit2 } from 'lucide-react'
 import { Category, DefaultCategoriesEnum } from '@/types/category'
-import { CreateTransactionForm, Transaction, TransactionType, TYPE_ENUM, TYPE_TEXT_ENUM } from '@/types/transaction'
+import { CreateTransactionForm, Transaction, TYPE_ENUM } from '@/types/transaction'
 import { useTheme } from 'next-themes'
-import { useToast } from '@/hooks/use-toast'
 
 interface TransactionFormProps {
   onSubmit: (transaction: CreateTransactionForm) => void
@@ -30,7 +29,6 @@ interface TransactionFormProps {
 
 export function TransactionForm({ onSubmit, onDeleteTransaction, onDeleteCategory, onCleanTransaction, onOpenCategoryModal, categories, transaction }: TransactionFormProps) {
   const { theme } = useTheme();
-  const { toast } = useToast()
 
   const [type, setType] = useState<Boolean>(!!TYPE_ENUM.INCOME);
   const [amount, setAmount] = useState('');
@@ -126,7 +124,6 @@ export function TransactionForm({ onSubmit, onDeleteTransaction, onDeleteCategor
             </div>
           </div>
 
-          {/* Amount */}
           <div className="space-y-2">
             <Label htmlFor="amount" className="text-sm font-medium">Amount *</Label>
             <div className="relative">
@@ -147,7 +144,6 @@ export function TransactionForm({ onSubmit, onDeleteTransaction, onDeleteCategor
             </div>
           </div>
 
-          {/* CategoryId */}
           <div className="space-y-2">
             <div className="flex justify-between">
               <Label htmlFor="category" className="text-sm font-medium">Category *</Label>
@@ -171,7 +167,6 @@ export function TransactionForm({ onSubmit, onDeleteTransaction, onDeleteCategor
             </Select>
           </div>
 
-          {/* Description */}
           <div className="space-y-2">
             <Label htmlFor="description" className="text-sm font-medium">Description</Label>
             <Input
@@ -184,7 +179,6 @@ export function TransactionForm({ onSubmit, onDeleteTransaction, onDeleteCategor
             />
           </div>
 
-          {/* Date */}
           <div className="space-y-2">
             <Label htmlFor="date" className="text-sm font-medium">Date *</Label>
             <Input
