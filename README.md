@@ -1,36 +1,90 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 💰 Financial Tracker Pro
 
-## Getting Started
+A lightweight, high-performance financial management tool built with **Next.js 16**, **PostgreSQL**, and **Docker**. Track your expenses/incomes/debts, manage categories, and visualize your data—all in a self-hosted environment that keeps your data private.
 
-First, run the development server:
+## 🚀 The Objective
+The goal of this project is to provide a "single-command" deployment for a secure, private financial dashboard. No cloud hosting required—your data stays on your machine.
 
+- **Private by Design:** Runs entirely on your local Docker environment.
+- **Fast & Optimized:** Uses Next.js standalone mode for a tiny footprint.
+- **Persistent:** Your data survives container restarts and updates.
+
+---
+
+## 🛠 Prerequisites
+
+Before you start, ensure you have the following installed:
+* [Docker Desktop](https://www.docker.com/products/docker-desktop/)
+* [Git](https://git-scm.com/)
+
+---
+
+## 📥 Installation & Setup
+
+Follow these simple steps to get the app running on your machine:
+
+### 1. Clone the Repository
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone [https://github.com/your-username/financial-app.git](https://github.com/your-username/financial-app.git)
+cd financial-app
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. Create your secret environment file from the template
+cp .env.example .env
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 3. Launch the App
+```bash
+docker compose up -d
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Docker will automatically pull the image from Docker Hub, set up the PostgreSQL database, and run the initialization scripts.
 
-## Learn More
+### 4. Access the App
+Open [http://localhost:3000](http://localhost:3000) in your browser to access the app.
 
-To learn more about Next.js, take a look at the following resources:
+## ⚙️ Configuration (.env)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+The app uses the following environment variables. The `.env.example` comes pre-configured for the Docker Compose network:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+| Variable | Description | Default Value |
+| :--- | :--- | :--- |
+| **DB_USER** | Database Administrative User | `root` |
+| **DB_PASSWORD** | Database Password | `root_password` |
+| **DB_NAME** | Initial Database Name | `finance_db` |
+| **DATABASE_URL** | Connection string for Next.js | `postgresql://root:root_password@db:5432/finance_db` |
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 📊 Database Schema
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Upon the first launch, the system automatically executes `schema.sql` to create the following structure:
+
+### Tables & Relationships
+* **Categories**: Stores `type` (Income/Expense), `name`, and `color` codes.
+* **Transactions**: Core records linked to categories with `amount`, `description`, and `date`.
+* **Debts**: Tracks money owed/owing with a link to transactions and a `status` (Paid/Unpaid).
+
+
+
+### Initial Data
+The app comes pre-seeded with essential categories:
+* 🟢 **Income**: Salary, Investments, Freelance, Gift/Refund.
+* 🔴 **Expense**: Rent, Groceries, Transportation, Utilities, Entertainment, Debt Payments.
+
+---
+
+## 🛠 Tech Stack
+* **Frontend**: Next.js 16 (App Router)
+* **Runtime**: Node.js 22 (LTS)
+* **Database**: PostgreSQL 15 (Alpine Linux)
+* **Containerization**: Docker & Docker Compose
+* **Deployment**: Multi-stage Docker builds (Standalone mode)
+
+---
+
+## 💾 Data Persistence
+Your data is stored in a Docker Volume named `pgdata`.
+
+* **Restarting containers**: Your data is safe.
+* **Stopping the app (`docker compose down`)**: Your data is safe.
+* **Wiping everything**: Only running `docker compose down -v` will delete your financial records.
