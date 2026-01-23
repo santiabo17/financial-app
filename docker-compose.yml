@@ -13,6 +13,7 @@ services:
       - "5432:5432"
 
   next-app:
+    image: santiabo17/financial-app:latest
     build: .
     env_file:
       - .env
