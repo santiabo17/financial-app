@@ -25,7 +25,7 @@ Follow these simple steps to get the app running on your machine:
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/santiabo17/financial-app.git(https://github.com/santiabo17/financial-app.git)
+git clone https://github.com/santiabo17/financial-app.git
 cd financial-app
 ```
 
